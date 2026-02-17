@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EnglishConnect Buddy
 
-## Getting Started
+Mobile-first language learning app to help Spanish and Portuguese speakers learn English using the EnglishConnect curriculum.
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router)
+- Tailwind CSS + shadcn/ui
+- Supabase (Auth + Postgres + Storage + RLS)
+
+## Features implemented
+
+- Open access curriculum and games (no login required)
+- Optional auth: users can sign in only to save progress
+- Email/password auth + Google auth
+- Quick language switcher: English, Spanish, Portuguese
+- Thumb-friendly mobile bottom navigation
+- Games:
+  - Flashcards
+  - Matching
+  - Sentence Unscramble
+- Admin-only content management (lessons, vocabulary, sentence scrambles)
+- Supabase Storage uploads for vocab media in bucket `vocab`
+
+## Curriculum structure
+
+Lessons follow official-style sequencing fields:
+
+- `level`
+- `unit`
+- `lesson_number`
+
+## Supabase setup
+
+1. Copy env file:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Fill values in `/Users/testing/Desktop/Websites/englishconnectbuddy/.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. In Supabase SQL editor, run:
 
-## Learn More
+- `/Users/testing/Desktop/Websites/englishconnectbuddy/supabase/schema.sql`
+- `/Users/testing/Desktop/Websites/englishconnectbuddy/supabase/seed_lessons.sql` (optional scaffold)
+- `/Users/testing/Desktop/Websites/englishconnectbuddy/supabase/import_vocab.sql` (for spreadsheet import workflow)
 
-To learn more about Next.js, take a look at the following resources:
+`schema.sql` now also includes flashcard spaced-repetition tables/policies.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. In Supabase Auth settings:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Enable Google provider
+- Add redirect URL: `http://localhost:3000/profile` (and your production profile URL)
 
-## Deploy on Vercel
+5. Create your account via the app (`/profile`), then promote your profile to admin in SQL editor:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```sql
+update public.profiles
+set is_admin = true
+where id = 'YOUR-USER-UUID';
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Run
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Notes
+
+- If Supabase is not configured yet, the app uses demo lesson/vocab data so UI and gameplay still work.
+- Keep bucket `vocab` public for direct media playback in flashcards.
+- `seed_lessons.sql` creates a Level/Unit/Lesson scaffold with generated titles you can edit in admin.
+
+## Spreadsheet import
+
+If your sheet has columns like:
+
+`id, lesson, type, eng, spa, por, spaTransliteration, porTransliteration, ipa, partOfSpeech, definition, image, engAudio`
+
+Use `/Users/testing/Desktop/Websites/englishconnectbuddy/supabase/import_vocab.sql`:
+
+1. Upload CSV rows into `public.vocab_import_staging` (Table Editor).
+2. In the SQL file, set `target_level` to `1` (EC1) or `2` (EC2).
+3. Run the insert block to map `lesson` -> `EC{level}.{sequence_number}`.
+
+### Media path format for spreadsheet
+
+You can keep media values as file paths like:
+
+- `image`: `/english/i.webp`
+- `engAudio`: `/english/i.mp3`
+
+The app resolves these automatically to Supabase Storage public URLs in bucket `vocab`:
+
+`https://<your-project>.supabase.co/storage/v1/object/public/vocab/english/i.mp3`
+
+So just upload files to bucket `vocab` preserving the same folder/file names.
