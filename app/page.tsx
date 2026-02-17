@@ -2,21 +2,32 @@
 
 import { AppShell } from "@/components/app/app-shell";
 import { GameCard } from "@/components/app/game-card";
+import { HomeInstallPrompt } from "@/components/app/home-install-prompt";
+import { useCourseProgress } from "@/components/app/use-course-progress";
 import { useCurriculum } from "@/components/app/use-curriculum";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { t } from "@/lib/i18n";
+import Link from "next/link";
 
 export default function Home() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
   const { user } = useAuth();
+  const { courseStats } = useCourseProgress({ lessons, vocab, user });
+  const activeCourse =
+    courseStats.find((course) => course.wordPercent > 0 && course.wordPercent < 100) ??
+    courseStats.find((course) => course.wordPercent < 100) ??
+    courseStats[courseStats.length - 1];
 
   return (
     <AppShell title={copy.appName} subtitle={copy.tagline}>
+      <HomeInstallPrompt />
       <Card className="border-lime-300 bg-gradient-to-r from-lime-600 via-green-600 to-emerald-600 text-white">
         <CardContent className="space-y-2 p-4">
           <div className="flex items-center justify-between gap-2">
@@ -26,9 +37,32 @@ export default function Home() {
             </Badge>
           </div>
           <p className="text-sm text-lime-50">{copy.optionalLogin}</p>
-          <p className="text-xs text-lime-100">
-            {user ? copy.progressActive : copy.continueGuest}
-          </p>
+          {user ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-lime-100">
+                <span>{activeCourse ? `EC${activeCourse.level}` : copy.progress}</span>
+                <span>
+                  {activeCourse
+                    ? `${Math.round(activeCourse.wordPercent)}% ${copy.masteredWords.toLowerCase()}`
+                    : copy.noProgressYet}
+                </span>
+              </div>
+              <Progress value={activeCourse?.wordPercent ?? 0} className="bg-white/20" />
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Link href="/profile">
+                <Button size="sm" variant="secondary" className="bg-white text-lime-700 hover:bg-lime-100">
+                  {copy.signUp}
+                </Button>
+              </Link>
+              <Link href="/profile">
+                <Button size="sm" variant="secondary" className="bg-white text-lime-800 hover:bg-lime-100">
+                  {copy.signIn}
+                </Button>
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
 

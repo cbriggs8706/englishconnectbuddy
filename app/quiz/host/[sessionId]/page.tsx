@@ -5,6 +5,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { absoluteUrl } from "@/lib/app-url";
 import { resolveVocabMediaUrl } from "@/lib/media";
 import { createClient } from "@/lib/supabase/client";
 import { QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
@@ -163,8 +164,8 @@ export default function QuizHostSessionPage() {
         setVocabMap(nextMap);
       }
 
-      if (sessionRes.data && typeof window !== "undefined") {
-        const joinUrl = `${window.location.origin}/quiz/join?code=${sessionRes.data.join_code}`;
+      if (sessionRes.data) {
+        const joinUrl = absoluteUrl(`/quiz/join?code=${sessionRes.data.join_code}`);
         const dataUrl = await QRCode.toDataURL(joinUrl, { margin: 1, width: 1200 });
         setQrData(dataUrl);
         setJoinUrl(joinUrl);

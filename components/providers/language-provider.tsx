@@ -3,7 +3,7 @@
 import { useAuth } from "@/components/providers/auth-provider";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 import { Language } from "@/lib/types";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type LanguageContextValue = {
   language: Language;
@@ -19,6 +19,7 @@ function isLanguage(value: string | null): value is Language {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const { user, profile } = useAuth();
+  const didHydrateFromProfile = useRef(false);
   const [localLanguage, setLocalLanguage] = useState<Language>(() => {
     if (typeof window === "undefined") return "es";
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -46,16 +47,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!profile || !user) return;
 
-    if (isLanguage(profile.native_language)) {
+    if (!didHydrateFromProfile.current && isLanguage(profile.native_language)) {
+      didHydrateFromProfile.current = true;
+      setLocalLanguage(profile.native_language);
       localStorage.setItem(LOCAL_STORAGE_KEY, profile.native_language);
       return;
     }
 
-    void persistLanguage(localLanguage);
+    if (!isLanguage(profile.native_language)) {
+      void persistLanguage(localLanguage);
+    }
   }, [localLanguage, persistLanguage, profile, user]);
 
-  const profileLanguage = profile?.native_language ?? null;
-  const language = isLanguage(profileLanguage) ? profileLanguage : localLanguage;
+  const language = localLanguage;
 
   const value = useMemo(
     () => ({

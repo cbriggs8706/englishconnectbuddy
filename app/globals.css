@@ -134,6 +134,31 @@
 }
 
 @layer components {
+  .app-content {
+    font-size: 1.08rem;
+    line-height: 1.65;
+  }
+
+  .app-content :where(.text-base) {
+    font-size: 1.08rem;
+    line-height: 1.65;
+  }
+
+  .app-content :where(.text-lg) {
+    font-size: 1.2rem;
+    line-height: 1.7;
+  }
+
+  .app-content :where(.text-xl) {
+    font-size: 1.3rem;
+    line-height: 1.75;
+  }
+
+  .app-content :where(.instruction-text) {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
   .flashcard-scene {
     perspective: 1200px;
     height: 24rem;

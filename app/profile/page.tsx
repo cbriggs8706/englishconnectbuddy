@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { t } from "@/lib/i18n";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { language } = useLanguage();
@@ -162,6 +163,13 @@ export default function ProfilePage() {
             <Button variant="secondary" onClick={() => void saveNames()}>
               Save profile
             </Button>
+            {profile?.is_admin ? (
+              <Link href="/admin">
+                <Button variant="outline" className="w-full">
+                  Admin Panel
+                </Button>
+              </Link>
+            ) : null}
             <Button onClick={handleSignOut}>{copy.signOut}</Button>
           </CardContent>
         </Card>

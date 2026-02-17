@@ -30,7 +30,7 @@ export function AppShell({
           </div>
         </div>
       </header>
-      <main className="relative z-10 space-y-4 px-4 py-4">{children}</main>
+      <main className="app-content relative z-10 space-y-4 px-4 py-4">{children}</main>
       <BottomNav />
     </div>
   );

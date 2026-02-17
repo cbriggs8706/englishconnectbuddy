@@ -55,6 +55,16 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </Link>
+          <Link href="/admin/home-qr">
+            <Card>
+              <CardHeader>
+                <CardTitle>Homepage QR</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Display a large QR code that opens the homepage and install prompt.
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </AdminGate>
     </AppShell>

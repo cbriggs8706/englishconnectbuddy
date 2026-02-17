@@ -16,6 +16,12 @@ const bodyFont = Nunito({
 export const metadata: Metadata = {
   title: "EnglishConnect Buddy",
   description: "Language learning app for EnglishConnect curriculum",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "EC Buddy",
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
