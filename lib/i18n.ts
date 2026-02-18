@@ -10,11 +10,16 @@ type Dictionary = {
   appName: string;
   tagline: string;
   flashcards: string;
+  alphabet: string;
   matching: string;
   unscramble: string;
   profile: string;
   admin: string;
   home: string;
+  liveQuiz: string;
+  volunteer: string;
+  more: string;
+  allActivities: string;
   progress: string;
   optionalLogin: string;
   signIn: string;
@@ -36,17 +41,23 @@ type Dictionary = {
   addLesson: string;
   addVocab: string;
   addSentence: string;
+  patterns: string;
+  addPatterns: string;
   play: string;
   curriculum: string;
   vocabReady: string;
   progressActive: string;
   homeFlashcardsDesc: string;
+  homeAlphabetDesc: string;
   homeMatchingDesc: string;
   homeUnscrambleDesc: string;
+  homePatternsDesc: string;
+  homeLiveQuizDesc: string;
   themeToggle: string;
   adminManageLessonsDesc: string;
   adminAddVocabDesc: string;
   adminAddSentenceDesc: string;
+  adminAddPatternsDesc: string;
   adminLoading: string;
   adminOnly: string;
   adminNeedAccount: string;
@@ -58,6 +69,8 @@ type Dictionary = {
   signedIn: string;
   signedOut: string;
   continueWithGoogle: string;
+  googleSignInEasier: string;
+  useEmailInstead: string;
   loggedInAs: string;
   gamesOpenNotice: string;
   createLessonFirst: string;
@@ -65,6 +78,7 @@ type Dictionary = {
   lessonAdded: string;
   vocabAdded: string;
   sentenceAdded: string;
+  patternsSaved: string;
   currentLessons: string;
   level: string;
   unit: string;
@@ -88,6 +102,14 @@ type Dictionary = {
   spanishHint: string;
   portugueseHint: string;
   addSentenceButton: string;
+  englishPatternImage: string;
+  spanishPatternImage: string;
+  portuguesePatternImage: string;
+  savePatterns: string;
+  chooseImageFile: string;
+  noPatternForLesson: string;
+  englishPattern: string;
+  selectedLanguagePattern: string;
   allLessons: string;
   cardMode: string;
   modeImageAudio: string;
@@ -121,6 +143,33 @@ type Dictionary = {
   completedStatus: string;
   inProgressStatus: string;
   notStartedStatus: string;
+  alphabetSubtitle: string;
+  alphabetStudyIntro: string;
+  startLetterQuiz: string;
+  letterQuizTitle: string;
+  chooseSecondsPerLetter: string;
+  beginQuiz: string;
+  studyMore: string;
+  ready: string;
+  set: string;
+  go: string;
+  questionOfTemplate: string;
+  questionTimerAria: string;
+  timesUpListenMark: string;
+  playAudioAgain: string;
+  iGotIt: string;
+  iMissedIt: string;
+  greatWork: string;
+  keepPracticing: string;
+  missedSummaryTemplate: string;
+  passedWithTwoOrFewer: string;
+  passRequirement: string;
+  wrongAnswers: string;
+  noWrongAnswersThisRound: string;
+  quizAgain: string;
+  tryAgain: string;
+  playLetterAriaTemplate: string;
+  exitQuiz: string;
 };
 
 export const dictionary: Record<Language, Dictionary> = {
@@ -128,11 +177,16 @@ export const dictionary: Record<Language, Dictionary> = {
     appName: "EnglishConnect Buddy",
     tagline: "Learn English with quick games and lessons",
     flashcards: "Flashcards",
+    alphabet: "Alphabet",
     matching: "Matching",
     unscramble: "Unscramble",
     profile: "Profile",
     admin: "Admin",
     home: "Home",
+    liveQuiz: "Live Quiz",
+    volunteer: "Volunteer",
+    more: "More",
+    allActivities: "All Activities",
     progress: "Progress",
     optionalLogin: "Login is optional and only saves your progress.",
     signIn: "Sign in",
@@ -154,17 +208,23 @@ export const dictionary: Record<Language, Dictionary> = {
     addLesson: "Add Lesson",
     addVocab: "Add Vocabulary",
     addSentence: "Add Sentence",
+    patterns: "Patterns",
+    addPatterns: "Add Patterns",
     play: "Play",
     curriculum: "Curriculum",
     vocabReady: "vocabulary items ready for gameplay.",
     progressActive: "Progress saving is active.",
     homeFlashcardsDesc: "Learn key words by revealing English meanings.",
+    homeAlphabetDesc: "Study uppercase and lowercase letters with audio.",
     homeMatchingDesc: "Match your language to English words quickly.",
     homeUnscrambleDesc: "Build correct English sentence order.",
+    homePatternsDesc: "Review lesson sentence patterns side by side.",
+    homeLiveQuizDesc: "Join teacher-led vocabulary challenges in real time.",
     themeToggle: "Toggle dark mode",
     adminManageLessonsDesc: "Manage EnglishConnect lessons.",
     adminAddVocabDesc: "Add vocabulary words, audio and images.",
     adminAddSentenceDesc: "Add sentence scramble practice.",
+    adminAddPatternsDesc: "Upload English, Spanish, and Portuguese pattern images by lesson.",
     adminLoading: "Loading admin access...",
     adminOnly: "Admin only",
     adminNeedAccount: "You need an admin account to access this section.",
@@ -176,6 +236,8 @@ export const dictionary: Record<Language, Dictionary> = {
     signedIn: "Signed in.",
     signedOut: "Signed out.",
     continueWithGoogle: "Continue with Google",
+    googleSignInEasier: "Signing in with Google is faster and easier.",
+    useEmailInstead: "Or use email and password",
     loggedInAs: "Logged in as",
     gamesOpenNotice: "All games are open without login. Login only saves progress and admin access.",
     createLessonFirst: "Please create a lesson first.",
@@ -183,6 +245,7 @@ export const dictionary: Record<Language, Dictionary> = {
     lessonAdded: "Lesson added.",
     vocabAdded: "Vocabulary added.",
     sentenceAdded: "Sentence added.",
+    patternsSaved: "Pattern images saved.",
     currentLessons: "Current lessons",
     level: "Level",
     unit: "Unit",
@@ -206,6 +269,14 @@ export const dictionary: Record<Language, Dictionary> = {
     spanishHint: "Spanish hint",
     portugueseHint: "Portuguese hint",
     addSentenceButton: "Add sentence",
+    englishPatternImage: "English Pattern Image",
+    spanishPatternImage: "Spanish Pattern Image",
+    portuguesePatternImage: "Portuguese Pattern Image",
+    savePatterns: "Save Patterns",
+    chooseImageFile: "Choose image file",
+    noPatternForLesson: "No pattern image uploaded for this lesson yet.",
+    englishPattern: "English Pattern",
+    selectedLanguagePattern: "Selected Language Pattern",
     allLessons: "All Lessons",
     cardMode: "Card Mode",
     modeImageAudio: "Picture front / Audio back",
@@ -239,16 +310,48 @@ export const dictionary: Record<Language, Dictionary> = {
     completedStatus: "Completed",
     inProgressStatus: "In progress",
     notStartedStatus: "Not started",
+    alphabetSubtitle: "Study letters and sounds",
+    alphabetStudyIntro: "Learn uppercase and lowercase letters with audio.",
+    startLetterQuiz: "Start Letter Quiz",
+    letterQuizTitle: "Letter Quiz",
+    chooseSecondsPerLetter: "Choose how many seconds you want to answer each letter.",
+    beginQuiz: "Begin Quiz",
+    studyMore: "Study More",
+    ready: "Ready",
+    set: "Set",
+    go: "Go!",
+    questionOfTemplate: "Question {current} of {total}",
+    questionTimerAria: "Question timer",
+    timesUpListenMark: "Time's up. Listen and mark your answer.",
+    playAudioAgain: "Play Audio Again",
+    iGotIt: "I Got It",
+    iMissedIt: "I Missed It",
+    greatWork: "Great Work!",
+    keepPracticing: "Keep Practicing!",
+    missedSummaryTemplate: "Missed {count} of {total} letters.",
+    passedWithTwoOrFewer: "You passed with 2 or fewer misses.",
+    passRequirement: "Pass requirement: miss no more than 2 letters.",
+    wrongAnswers: "Wrong Answers",
+    noWrongAnswersThisRound: "No wrong answers this round.",
+    quizAgain: "Quiz Again",
+    tryAgain: "Try Again",
+    playLetterAriaTemplate: "Play letter {letter}",
+    exitQuiz: "Exit quiz",
   },
   es: {
     appName: "EnglishConnect Buddy",
     tagline: "Aprende inglés con juegos y lecciones rápidas",
     flashcards: "Tarjetas",
+    alphabet: "Alfabeto",
     matching: "Relacionar",
     unscramble: "Ordenar",
     profile: "Perfil",
     admin: "Admin",
     home: "Inicio",
+    liveQuiz: "Quiz en vivo",
+    volunteer: "Voluntariado",
+    more: "Más",
+    allActivities: "Todas las actividades",
     progress: "Progreso",
     optionalLogin: "Iniciar sesión es opcional y solo guarda tu progreso.",
     signIn: "Ingresar",
@@ -270,17 +373,23 @@ export const dictionary: Record<Language, Dictionary> = {
     addLesson: "Agregar Lección",
     addVocab: "Agregar Vocabulario",
     addSentence: "Agregar Oración",
+    patterns: "Patrones",
+    addPatterns: "Agregar Patrones",
     play: "Jugar",
     curriculum: "Currículo",
     vocabReady: "elementos de vocabulario listos para practicar.",
     progressActive: "El guardado de progreso está activo.",
     homeFlashcardsDesc: "Aprende palabras clave revelando su significado en inglés.",
+    homeAlphabetDesc: "Estudia letras mayúsculas y minúsculas con audio.",
     homeMatchingDesc: "Relaciona rápidamente tu idioma con palabras en inglés.",
     homeUnscrambleDesc: "Construye el orden correcto de las oraciones en inglés.",
+    homePatternsDesc: "Revisa patrones de la lección en paralelo.",
+    homeLiveQuizDesc: "Únete a desafíos de vocabulario guiados por el maestro en tiempo real.",
     themeToggle: "Cambiar modo oscuro",
     adminManageLessonsDesc: "Gestiona las lecciones de EnglishConnect.",
     adminAddVocabDesc: "Agrega vocabulario, audio e imágenes.",
     adminAddSentenceDesc: "Agrega práctica de ordenar oraciones.",
+    adminAddPatternsDesc: "Sube imágenes de patrones en inglés, español y portugués por lección.",
     adminLoading: "Cargando acceso de admin...",
     adminOnly: "Solo admin",
     adminNeedAccount: "Necesitas una cuenta de admin para acceder a esta sección.",
@@ -292,6 +401,8 @@ export const dictionary: Record<Language, Dictionary> = {
     signedIn: "Sesión iniciada.",
     signedOut: "Sesión cerrada.",
     continueWithGoogle: "Continuar con Google",
+    googleSignInEasier: "Ingresar con Google es más rápido y fácil.",
+    useEmailInstead: "O usa correo y contraseña",
     loggedInAs: "Conectado como",
     gamesOpenNotice: "Todos los juegos están abiertos sin inicio de sesión. Iniciar sesión solo guarda progreso y acceso admin.",
     createLessonFirst: "Primero crea una lección.",
@@ -299,6 +410,7 @@ export const dictionary: Record<Language, Dictionary> = {
     lessonAdded: "Lección agregada.",
     vocabAdded: "Vocabulario agregado.",
     sentenceAdded: "Oración agregada.",
+    patternsSaved: "Imágenes de patrones guardadas.",
     currentLessons: "Lecciones actuales",
     level: "Nivel",
     unit: "Unidad",
@@ -322,6 +434,14 @@ export const dictionary: Record<Language, Dictionary> = {
     spanishHint: "Pista en español",
     portugueseHint: "Pista en portugués",
     addSentenceButton: "Agregar oración",
+    englishPatternImage: "Imagen del patrón en inglés",
+    spanishPatternImage: "Imagen del patrón en español",
+    portuguesePatternImage: "Imagen del patrón en portugués",
+    savePatterns: "Guardar patrones",
+    chooseImageFile: "Elegir archivo de imagen",
+    noPatternForLesson: "Aún no hay imagen de patrón para esta lección.",
+    englishPattern: "Patrón en inglés",
+    selectedLanguagePattern: "Patrón del idioma seleccionado",
     allLessons: "Todas las lecciones",
     cardMode: "Modo de tarjeta",
     modeImageAudio: "Imagen frente / Audio atrás",
@@ -355,16 +475,48 @@ export const dictionary: Record<Language, Dictionary> = {
     completedStatus: "Completada",
     inProgressStatus: "En progreso",
     notStartedStatus: "Sin empezar",
+    alphabetSubtitle: "Estudia letras y sonidos",
+    alphabetStudyIntro: "Aprende letras mayúsculas y minúsculas con audio.",
+    startLetterQuiz: "Comenzar quiz de letras",
+    letterQuizTitle: "Quiz de letras",
+    chooseSecondsPerLetter: "Elige cuántos segundos quieres para responder cada letra.",
+    beginQuiz: "Comenzar quiz",
+    studyMore: "Estudiar más",
+    ready: "Listos",
+    set: "Preparados",
+    go: "¡Ya!",
+    questionOfTemplate: "Pregunta {current} de {total}",
+    questionTimerAria: "Temporizador de pregunta",
+    timesUpListenMark: "Se acabó el tiempo. Escucha y marca tu respuesta.",
+    playAudioAgain: "Reproducir audio otra vez",
+    iGotIt: "La acerté",
+    iMissedIt: "La fallé",
+    greatWork: "¡Excelente trabajo!",
+    keepPracticing: "Sigue practicando",
+    missedSummaryTemplate: "Fallaste {count} de {total} letras.",
+    passedWithTwoOrFewer: "Aprobaste con 2 o menos fallos.",
+    passRequirement: "Para aprobar: no fallar más de 2 letras.",
+    wrongAnswers: "Respuestas incorrectas",
+    noWrongAnswersThisRound: "No hubo respuestas incorrectas en esta ronda.",
+    quizAgain: "Quiz otra vez",
+    tryAgain: "Intentar de nuevo",
+    playLetterAriaTemplate: "Reproducir letra {letter}",
+    exitQuiz: "Salir del quiz",
   },
   pt: {
     appName: "EnglishConnect Buddy",
     tagline: "Aprenda inglês com jogos e lições rápidas",
     flashcards: "Cartões",
+    alphabet: "Alfabeto",
     matching: "Combinar",
     unscramble: "Ordenar",
     profile: "Perfil",
     admin: "Admin",
     home: "Início",
+    liveQuiz: "Quiz ao vivo",
+    volunteer: "Voluntariado",
+    more: "Mais",
+    allActivities: "Todas as atividades",
     progress: "Progresso",
     optionalLogin: "O login é opcional e só salva seu progresso.",
     signIn: "Entrar",
@@ -386,17 +538,23 @@ export const dictionary: Record<Language, Dictionary> = {
     addLesson: "Adicionar Lição",
     addVocab: "Adicionar Vocabulário",
     addSentence: "Adicionar Frase",
+    patterns: "Padrões",
+    addPatterns: "Adicionar Padrões",
     play: "Jogar",
     curriculum: "Currículo",
     vocabReady: "itens de vocabulário prontos para prática.",
     progressActive: "Salvar progresso está ativo.",
     homeFlashcardsDesc: "Aprenda palavras-chave revelando significados em inglês.",
+    homeAlphabetDesc: "Estude letras maiúsculas e minúsculas com áudio.",
     homeMatchingDesc: "Combine rapidamente seu idioma com palavras em inglês.",
     homeUnscrambleDesc: "Monte a ordem correta das frases em inglês.",
+    homePatternsDesc: "Revise padrões da lição lado a lado.",
+    homeLiveQuizDesc: "Participe de desafios de vocabulário ao vivo com o professor.",
     themeToggle: "Alternar modo escuro",
     adminManageLessonsDesc: "Gerencie as lições do EnglishConnect.",
     adminAddVocabDesc: "Adicione vocabulário, áudio e imagens.",
     adminAddSentenceDesc: "Adicione prática de ordenar frases.",
+    adminAddPatternsDesc: "Envie imagens de padrões em inglês, espanhol e português por lição.",
     adminLoading: "Carregando acesso de admin...",
     adminOnly: "Somente admin",
     adminNeedAccount: "Você precisa de uma conta admin para acessar esta seção.",
@@ -408,6 +566,8 @@ export const dictionary: Record<Language, Dictionary> = {
     signedIn: "Login realizado.",
     signedOut: "Sessão encerrada.",
     continueWithGoogle: "Continuar com Google",
+    googleSignInEasier: "Entrar com Google é mais rápido e fácil.",
+    useEmailInstead: "Ou use email e senha",
     loggedInAs: "Conectado como",
     gamesOpenNotice: "Todos os jogos estão abertos sem login. O login salva apenas progresso e acesso admin.",
     createLessonFirst: "Crie uma lição primeiro.",
@@ -415,6 +575,7 @@ export const dictionary: Record<Language, Dictionary> = {
     lessonAdded: "Lição adicionada.",
     vocabAdded: "Vocabulário adicionado.",
     sentenceAdded: "Frase adicionada.",
+    patternsSaved: "Imagens de padrões salvas.",
     currentLessons: "Lições atuais",
     level: "Nível",
     unit: "Unidade",
@@ -438,6 +599,14 @@ export const dictionary: Record<Language, Dictionary> = {
     spanishHint: "Dica em espanhol",
     portugueseHint: "Dica em português",
     addSentenceButton: "Adicionar frase",
+    englishPatternImage: "Imagem do padrão em inglês",
+    spanishPatternImage: "Imagem do padrão em espanhol",
+    portuguesePatternImage: "Imagem do padrão em português",
+    savePatterns: "Salvar padrões",
+    chooseImageFile: "Escolher arquivo de imagem",
+    noPatternForLesson: "Nenhuma imagem de padrão enviada para esta lição ainda.",
+    englishPattern: "Padrão em inglês",
+    selectedLanguagePattern: "Padrão do idioma selecionado",
     allLessons: "Todas as lições",
     cardMode: "Modo do cartão",
     modeImageAudio: "Imagem frente / Áudio verso",
@@ -471,6 +640,33 @@ export const dictionary: Record<Language, Dictionary> = {
     completedStatus: "Concluída",
     inProgressStatus: "Em progresso",
     notStartedStatus: "Não iniciada",
+    alphabetSubtitle: "Estude letras e sons",
+    alphabetStudyIntro: "Aprenda letras maiúsculas e minúsculas com áudio.",
+    startLetterQuiz: "Iniciar quiz de letras",
+    letterQuizTitle: "Quiz de letras",
+    chooseSecondsPerLetter: "Escolha quantos segundos você quer para responder cada letra.",
+    beginQuiz: "Iniciar quiz",
+    studyMore: "Estudar mais",
+    ready: "Preparar",
+    set: "Apontar",
+    go: "Vai!",
+    questionOfTemplate: "Pergunta {current} de {total}",
+    questionTimerAria: "Temporizador da pergunta",
+    timesUpListenMark: "Tempo esgotado. Ouça e marque sua resposta.",
+    playAudioAgain: "Tocar áudio novamente",
+    iGotIt: "Eu acertei",
+    iMissedIt: "Eu errei",
+    greatWork: "Ótimo trabalho!",
+    keepPracticing: "Continue praticando",
+    missedSummaryTemplate: "Errou {count} de {total} letras.",
+    passedWithTwoOrFewer: "Você passou com 2 ou menos erros.",
+    passRequirement: "Regra para passar: errar no máximo 2 letras.",
+    wrongAnswers: "Respostas erradas",
+    noWrongAnswersThisRound: "Nenhuma resposta errada nesta rodada.",
+    quizAgain: "Quiz novamente",
+    tryAgain: "Tentar novamente",
+    playLetterAriaTemplate: "Tocar letra {letter}",
+    exitQuiz: "Sair do quiz",
   },
 };
 

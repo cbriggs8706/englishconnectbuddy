@@ -47,6 +47,28 @@ export type SentenceScramble = {
   portuguese_hint: string | null;
 };
 
+export type LessonPattern = {
+  id: string;
+  lesson_id: string;
+  english_image_url: string | null;
+  spanish_image_url: string | null;
+  portuguese_image_url: string | null;
+  en_pattern_1_question_image_url: string | null;
+  en_pattern_1_answer_image_url: string | null;
+  en_pattern_2_question_image_url: string | null;
+  en_pattern_2_answer_image_url: string | null;
+  es_pattern_1_question_image_url: string | null;
+  es_pattern_1_answer_image_url: string | null;
+  es_pattern_2_question_image_url: string | null;
+  es_pattern_2_answer_image_url: string | null;
+  pt_pattern_1_question_image_url: string | null;
+  pt_pattern_1_answer_image_url: string | null;
+  pt_pattern_2_question_image_url: string | null;
+  pt_pattern_2_answer_image_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type UserProgress = {
   id: string;
   user_id: string;

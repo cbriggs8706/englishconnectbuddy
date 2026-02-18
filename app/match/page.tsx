@@ -61,6 +61,16 @@ function createConfettiPieces(count = 90): ConfettiPiece[] {
   }));
 }
 
+function normalizeKey(value: string | null | undefined) {
+  return (value ?? "").trim().toLowerCase();
+}
+
+function matchContentKey(item: VocabularyItem, kind: ContentKind) {
+  if (kind === "text") return `text:${normalizeKey(item.english_text)}`;
+  if (kind === "audio") return `audio:${normalizeKey(resolveVocabMediaUrl(item.audio_url) ?? item.id)}`;
+  return `image:${normalizeKey(resolveVocabMediaUrl(item.image_url) ?? item.id)}`;
+}
+
 export default function MatchingPage() {
   const { language } = useLanguage();
   const copy = t(language);
@@ -108,12 +118,31 @@ export default function MatchingPage() {
       if (!src) return false;
       return !failedImageSrcs[src];
     });
+    const uniquePairs: Pair[] = [];
+    const seenPromptKeys = new Set<string>();
+    const seenAnswerKeys = new Set<string>();
 
-    return shuffle(filtered).slice(0, 6).map((item) => ({
-      id: item.id,
-      item,
-    }));
-  }, [lessonFilteredVocab, modeUsesImage, failedImageSrcs, roundNonce]);
+    for (const item of shuffle(filtered)) {
+      const promptKey = matchContentKey(item, promptKind);
+      const answerKey = matchContentKey(item, answerKind);
+      if (seenPromptKeys.has(promptKey) || seenAnswerKeys.has(answerKey)) continue;
+
+      seenPromptKeys.add(promptKey);
+      seenAnswerKeys.add(answerKey);
+      uniquePairs.push({ id: item.id, item });
+
+      if (uniquePairs.length >= 6) break;
+    }
+
+    return uniquePairs;
+  }, [
+    lessonFilteredVocab,
+    modeUsesImage,
+    failedImageSrcs,
+    roundNonce,
+    promptKind,
+    answerKind,
+  ]);
 
   const answers = useMemo(() => shuffle(pairs), [pairs]);
   const remainingPairs = useMemo(

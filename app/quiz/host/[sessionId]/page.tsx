@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { absoluteUrl } from "@/lib/app-url";
 import { resolveVocabMediaUrl } from "@/lib/media";
 import { createClient } from "@/lib/supabase/client";
-import { QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
+import { Language, QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
 import QRCode from "qrcode";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -27,6 +27,10 @@ const copy = {
     remove: "Remove",
     review: "Review answers",
     podium: "Winners",
+    questionTime: "Question time",
+    updating: "Updating...",
+    showQr: "Show QR",
+    hideQr: "Hide QR",
   },
   es: {
     title: "Presentador del quiz",
@@ -40,6 +44,10 @@ const copy = {
     remove: "Quitar",
     review: "Revisar respuestas",
     podium: "Ganadores",
+    questionTime: "Tiempo por pregunta",
+    updating: "Actualizando...",
+    showQr: "Mostrar QR",
+    hideQr: "Ocultar QR",
   },
   pt: {
     title: "Apresentador do quiz",
@@ -53,21 +61,28 @@ const copy = {
     remove: "Remover",
     review: "Revisar respostas",
     podium: "Vencedores",
+    questionTime: "Tempo por pergunta",
+    updating: "Atualizando...",
+    showQr: "Mostrar QR",
+    hideQr: "Ocultar QR",
   },
 } as const;
 
-function optionLabel(item: VocabularyItem, language: "en" | "es" | "pt") {
-  if (language === "es") return item.spanish_text;
-  if (language === "pt") return item.portuguese_text;
+function optionLabel(item: VocabularyItem) {
   return item.english_text;
 }
 
+function promptLabel(item: VocabularyItem) {
+  return item.spanish_text || item.portuguese_text || item.english_text;
+}
+
 const optionToneClasses = [
-  "bg-fuchsia-500 text-white border-fuchsia-700",
-  "bg-cyan-500 text-white border-cyan-700",
-  "bg-amber-400 text-black border-amber-600",
-  "bg-lime-500 text-black border-lime-700",
+  "bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 text-white border-blue-900",
+  "bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 text-white border-red-900",
+  "bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 text-black border-amber-700",
+  "bg-gradient-to-br from-green-700 via-emerald-600 to-lime-500 text-white border-green-900",
 ];
+const durationOptions = [10, 20, 30, 45, 60] as const;
 
 export default function QuizHostSessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -83,6 +98,9 @@ export default function QuizHostSessionPage() {
   const [joinUrl, setJoinUrl] = useState<string>("");
   const [clock, setClock] = useState(0);
   const [failedImageQuestionId, setFailedImageQuestionId] = useState<string | null>(null);
+  const [updatingDuration, setUpdatingDuration] = useState<number | null>(null);
+  const [showJoinQrPanel, setShowJoinQrPanel] = useState(false);
+  const [autoClosingQuestionId, setAutoClosingQuestionId] = useState<string | null>(null);
 
   const currentQuestion =
     session && session.current_question_index >= 0
@@ -124,6 +142,26 @@ export default function QuizHostSessionPage() {
     );
     return submittedIds.size;
   }, [answers, activeParticipants, currentQuestion]);
+
+  useEffect(() => {
+    if (!currentQuestion || !questionOpen) return;
+    if (activeParticipants.length === 0) return;
+    if (submittedCount < activeParticipants.length) return;
+    if (autoClosingQuestionId === currentQuestion.id) return;
+
+    setAutoClosingQuestionId(currentQuestion.id);
+    const supabase = createClient();
+    void supabase.rpc("quiz_close_current_question", {
+      p_session_id: sessionId,
+    });
+  }, [
+    currentQuestion,
+    questionOpen,
+    submittedCount,
+    activeParticipants.length,
+    autoClosingQuestionId,
+    sessionId,
+  ]);
 
   useEffect(() => {
     const timer = setInterval(() => setClock(Date.now()), 1000);
@@ -235,6 +273,17 @@ export default function QuizHostSessionPage() {
 
   const podium = leaderboard.slice(0, 3);
 
+  async function updateQuestionDuration(seconds: number) {
+    setUpdatingDuration(seconds);
+    const supabase = createClient();
+    const { data } = await supabase.rpc("quiz_set_question_duration", {
+      p_session_id: sessionId,
+      p_question_duration_seconds: seconds,
+    });
+    if (data) setSession(data as QuizSession);
+    setUpdatingDuration(null);
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <AdminGate>
@@ -242,7 +291,17 @@ export default function QuizHostSessionPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4">
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-bold">{text.title}</h1>
-              {!isWaiting ? <Badge className="text-lg">{session?.join_code ?? "..."}</Badge> : null}
+              {!isWaiting ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={showJoinQrPanel ? "default" : "secondary"}
+                  className="h-10 rounded-full px-4 text-base font-black tracking-wide"
+                  onClick={() => setShowJoinQrPanel((prev) => !prev)}
+                >
+                  {session?.join_code ?? "..."} · {showJoinQrPanel ? text.hideQr : text.showQr}
+                </Button>
+              ) : null}
               <Badge variant="outline">{session?.status ?? "waiting"}</Badge>
             </div>
             <p className="text-sm font-semibold text-muted-foreground">{joinUrl || "/quiz/join"}</p>
@@ -253,6 +312,31 @@ export default function QuizHostSessionPage() {
               </div>
             ) : null}
           </div>
+
+          {!isWaiting && showJoinQrPanel && qrData ? (
+            <div className="fixed bottom-4 right-4 z-40 w-56 rounded-2xl border bg-white/95 p-3 shadow-xl backdrop-blur">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-700">{text.joinCode}</p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setShowJoinQrPanel(false)}
+                >
+                  {text.hideQr}
+                </Button>
+              </div>
+              <img
+                src={qrData}
+                alt="Join quiz QR code"
+                className="aspect-square w-full rounded-xl border bg-white p-1"
+              />
+              <p className="mt-2 text-center text-lg font-black tracking-[0.14em] text-slate-900">
+                {session?.join_code ?? "..."}
+              </p>
+            </div>
+          ) : null}
 
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
             <div className="space-y-4">
@@ -311,13 +395,13 @@ export default function QuizHostSessionPage() {
                       <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">{text.noImage}</p>
                         <p className="mt-2 text-5xl font-bold text-foreground">
-                          {promptItem ? optionLabel(promptItem, language) : ""}
+                          {promptItem ? promptLabel(promptItem) : ""}
                         </p>
                       </div>
                     )}
 
                     {currentQuestion ? (
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-3">
                         {currentQuestion.option_vocab_ids.map((optionId, index) => {
                           const item = vocabMap[optionId];
                           const isCorrect = optionId === currentQuestion.correct_vocab_id;
@@ -325,7 +409,7 @@ export default function QuizHostSessionPage() {
                           return (
                             <div
                               key={optionId}
-                              className={`flex items-center justify-between rounded-xl border p-3 ${toneClass} ${
+                              className={`flex min-h-24 items-center justify-between rounded-xl border px-4 py-4 text-xl font-black leading-tight sm:min-h-28 sm:text-2xl ${toneClass} ${
                                 revealAnswer && isCorrect
                                   ? "ring-4 ring-lime-300"
                                   : revealAnswer
@@ -333,7 +417,7 @@ export default function QuizHostSessionPage() {
                                     : ""
                               }`}
                             >
-                              <span>{item ? optionLabel(item, language) : optionId}</span>
+                              <span>{item ? optionLabel(item) : optionId}</span>
                             </div>
                           );
                         })}
@@ -345,6 +429,31 @@ export default function QuizHostSessionPage() {
             </div>
 
             <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{text.questionTime}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    {session?.question_duration_seconds ?? 20}s
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                    {durationOptions.map((option) => (
+                      <Button
+                        key={option}
+                        type="button"
+                        variant={session?.question_duration_seconds === option ? "default" : "secondary"}
+                        className="h-11 text-base font-bold"
+                        disabled={updatingDuration !== null}
+                        onClick={() => void updateQuestionDuration(option)}
+                      >
+                        {updatingDuration === option ? text.updating : `${option}s`}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>{text.participants}</CardTitle>

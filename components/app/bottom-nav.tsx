@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 import { BookOpen, ChartNoAxesColumn, Home, Layers, Menu, Shuffle, Trophy, UserRound, Users } from "lucide-react";
@@ -23,21 +23,19 @@ export function BottomNav() {
 
   const activityLinks = useMemo(
     () => [
+      { href: "/alphabet", label: copy.alphabet, icon: BookOpen },
       { href: "/flashcards", label: copy.flashcards, icon: Layers },
       { href: "/match", label: copy.matching, icon: Shuffle },
       { href: "/unscramble", label: copy.unscramble, icon: BookOpen },
-      { href: "/quiz", label: "Live", icon: Trophy },
+      { href: "/patterns", label: copy.patterns, icon: BookOpen },
+      { href: "/quiz", label: copy.liveQuiz, icon: Trophy },
       { href: "/dictionary", label: copy.dictionary, icon: BookOpen },
       { href: "/progress", label: copy.progress, icon: ChartNoAxesColumn },
-      { href: "/volunteer", label: "Volunteer", icon: Users },
+      { href: "/volunteer", label: copy.volunteer, icon: Users },
       { href: "/profile", label: copy.profile, icon: UserRound },
     ],
     [copy]
   );
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   const moreActive =
     !primaryNav.some((item) => (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))) &&
@@ -54,7 +52,7 @@ export function BottomNav() {
             onClick={() => setMenuOpen(false)}
           />
           <div className="absolute inset-x-0 bottom-0 rounded-t-[2rem] border-t-2 border-sky-200 bg-white px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl">
-            <p className="text-lg font-black tracking-wide text-slate-900">All Activities</p>
+            <p className="text-lg font-black tracking-wide text-slate-900">{copy.allActivities}</p>
             <ul className="mt-4 grid grid-cols-2 gap-3">
               {activityLinks.map((item) => {
                 const Icon = item.icon;
@@ -64,6 +62,7 @@ export function BottomNav() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={() => setMenuOpen(false)}
                       className={cn(
                         "flex min-h-16 items-center gap-3 rounded-2xl px-4 text-base font-extrabold transition-colors",
                         active
@@ -85,7 +84,7 @@ export function BottomNav() {
         <ul className={cn("grid grid-cols-5 gap-1 px-2")}>
           {primaryNav.map((item) => {
             const Icon = item.icon;
-            const label = item.key === "liveQuiz" ? "Live" : copy[item.key];
+            const label = copy[item.key];
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
             return (
@@ -115,7 +114,7 @@ export function BottomNav() {
               )}
             >
               <Menu className="mb-1 h-4 w-4" />
-              More
+              {copy.more}
             </button>
           </li>
         </ul>

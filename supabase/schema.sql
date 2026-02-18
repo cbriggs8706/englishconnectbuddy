@@ -91,6 +91,41 @@ create table if not exists public.sentence_scrambles (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.lesson_patterns (
+  id uuid primary key default gen_random_uuid(),
+  lesson_id uuid not null references public.lessons(id) on delete cascade unique,
+  english_image_url text,
+  spanish_image_url text,
+  portuguese_image_url text,
+  en_pattern_1_question_image_url text,
+  en_pattern_1_answer_image_url text,
+  en_pattern_2_question_image_url text,
+  en_pattern_2_answer_image_url text,
+  es_pattern_1_question_image_url text,
+  es_pattern_1_answer_image_url text,
+  es_pattern_2_question_image_url text,
+  es_pattern_2_answer_image_url text,
+  pt_pattern_1_question_image_url text,
+  pt_pattern_1_answer_image_url text,
+  pt_pattern_2_question_image_url text,
+  pt_pattern_2_answer_image_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.lesson_patterns add column if not exists en_pattern_1_question_image_url text;
+alter table public.lesson_patterns add column if not exists en_pattern_1_answer_image_url text;
+alter table public.lesson_patterns add column if not exists en_pattern_2_question_image_url text;
+alter table public.lesson_patterns add column if not exists en_pattern_2_answer_image_url text;
+alter table public.lesson_patterns add column if not exists es_pattern_1_question_image_url text;
+alter table public.lesson_patterns add column if not exists es_pattern_1_answer_image_url text;
+alter table public.lesson_patterns add column if not exists es_pattern_2_question_image_url text;
+alter table public.lesson_patterns add column if not exists es_pattern_2_answer_image_url text;
+alter table public.lesson_patterns add column if not exists pt_pattern_1_question_image_url text;
+alter table public.lesson_patterns add column if not exists pt_pattern_1_answer_image_url text;
+alter table public.lesson_patterns add column if not exists pt_pattern_2_question_image_url text;
+alter table public.lesson_patterns add column if not exists pt_pattern_2_answer_image_url text;
+
 create table if not exists public.user_progress (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -156,6 +191,7 @@ alter table public.profiles enable row level security;
 alter table public.lessons enable row level security;
 alter table public.vocabulary enable row level security;
 alter table public.sentence_scrambles enable row level security;
+alter table public.lesson_patterns enable row level security;
 alter table public.user_progress enable row level security;
 alter table public.game_scores enable row level security;
 alter table public.user_flashcard_progress enable row level security;
@@ -174,6 +210,11 @@ using (true);
 drop policy if exists "scrambles readable by all" on public.sentence_scrambles;
 create policy "scrambles readable by all"
 on public.sentence_scrambles for select
+using (true);
+
+drop policy if exists "lesson patterns readable by all" on public.lesson_patterns;
+create policy "lesson patterns readable by all"
+on public.lesson_patterns for select
 using (true);
 
 -- Profile ownership
@@ -251,6 +292,12 @@ on public.sentence_scrambles for all
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
 
+drop policy if exists "lesson patterns admin write" on public.lesson_patterns;
+create policy "lesson patterns admin write"
+on public.lesson_patterns for all
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
 -- Storage bucket for vocab media
 insert into storage.buckets (id, name, public)
 values ('vocab', 'vocab', true)
@@ -276,6 +323,32 @@ drop policy if exists "vocab admin delete" on storage.objects;
 create policy "vocab admin delete"
 on storage.objects for delete
 using (bucket_id = 'vocab' and public.is_admin(auth.uid()));
+
+-- Storage bucket for lesson patterns
+insert into storage.buckets (id, name, public)
+values ('patterns', 'patterns', true)
+on conflict (id) do nothing;
+
+drop policy if exists "patterns public read" on storage.objects;
+create policy "patterns public read"
+on storage.objects for select
+using (bucket_id = 'patterns');
+
+drop policy if exists "patterns admin insert" on storage.objects;
+create policy "patterns admin insert"
+on storage.objects for insert
+with check (bucket_id = 'patterns' and public.is_admin(auth.uid()));
+
+drop policy if exists "patterns admin update" on storage.objects;
+create policy "patterns admin update"
+on storage.objects for update
+using (bucket_id = 'patterns' and public.is_admin(auth.uid()))
+with check (bucket_id = 'patterns' and public.is_admin(auth.uid()));
+
+drop policy if exists "patterns admin delete" on storage.objects;
+create policy "patterns admin delete"
+on storage.objects for delete
+using (bucket_id = 'patterns' and public.is_admin(auth.uid()));
 
 -- promote first admin manually (replace with your user id)
 -- update public.profiles set is_admin = true where id = 'YOUR-USER-UUID';
@@ -463,6 +536,7 @@ declare
   v_session_id uuid;
   v_join_code text;
   v_prompt record;
+  v_distractor record;
   v_option_ids uuid[];
   v_lesson_ids uuid[];
   v_primary_lesson uuid;
@@ -470,6 +544,12 @@ declare
   v_question_count integer;
   v_duration integer := greatest(5, least(coalesce(p_question_duration_seconds, 20), 60));
   v_order integer := 0;
+  v_prompt_en_key text;
+  v_prompt_es_key text;
+  v_prompt_pt_key text;
+  v_selected_en_keys text[];
+  v_selected_es_keys text[];
+  v_selected_pt_keys text[];
 begin
   v_lesson_ids := array(
     select distinct lesson_id
@@ -521,27 +601,75 @@ begin
   returning id into v_session_id;
 
   for v_prompt in
-    select id, image_url
+    select id, image_url, english_text, spanish_text, portuguese_text
     from public.vocabulary
     where lesson_id = any(v_lesson_ids)
     order by random()
     limit v_question_count
   loop
-    select array_agg(choice.id order by random())
-    into v_option_ids
-    from (
-      select v_prompt.id as id
-      union all
-      select distractors.id
-      from (
-        select id
+    v_prompt_en_key := lower(trim(coalesce(v_prompt.english_text, '')));
+    v_prompt_es_key := lower(trim(coalesce(v_prompt.spanish_text, '')));
+    v_prompt_pt_key := lower(trim(coalesce(v_prompt.portuguese_text, '')));
+
+    v_option_ids := array[v_prompt.id];
+    v_selected_en_keys := array[v_prompt_en_key];
+    v_selected_es_keys := array[v_prompt_es_key];
+    v_selected_pt_keys := array[v_prompt_pt_key];
+
+    for v_distractor in
+      select
+        id,
+        lower(trim(coalesce(english_text, ''))) as en_key,
+        lower(trim(coalesce(spanish_text, ''))) as es_key,
+        lower(trim(coalesce(portuguese_text, ''))) as pt_key
+      from public.vocabulary
+      where lesson_id = any(v_lesson_ids)
+        and id <> v_prompt.id
+      order by random()
+    loop
+      if v_distractor.en_key = any(v_selected_en_keys)
+         or v_distractor.es_key = any(v_selected_es_keys)
+         or v_distractor.pt_key = any(v_selected_pt_keys) then
+        continue;
+      end if;
+
+      v_option_ids := array_append(v_option_ids, v_distractor.id);
+      v_selected_en_keys := array_append(v_selected_en_keys, v_distractor.en_key);
+      v_selected_es_keys := array_append(v_selected_es_keys, v_distractor.es_key);
+      v_selected_pt_keys := array_append(v_selected_pt_keys, v_distractor.pt_key);
+
+      exit when array_length(v_option_ids, 1) >= 4;
+    end loop;
+
+    if array_length(v_option_ids, 1) < 4 then
+      for v_distractor in
+        select
+          id,
+          lower(trim(coalesce(english_text, ''))) as en_key,
+          lower(trim(coalesce(spanish_text, ''))) as es_key,
+          lower(trim(coalesce(portuguese_text, ''))) as pt_key
         from public.vocabulary
-        where lesson_id = any(v_lesson_ids)
-          and id <> v_prompt.id
+        where id <> all(v_option_ids)
         order by random()
-        limit 3
-      ) distractors
-    ) choice;
+      loop
+        if v_distractor.en_key = any(v_selected_en_keys)
+           or v_distractor.es_key = any(v_selected_es_keys)
+           or v_distractor.pt_key = any(v_selected_pt_keys) then
+          continue;
+        end if;
+
+        v_option_ids := array_append(v_option_ids, v_distractor.id);
+        v_selected_en_keys := array_append(v_selected_en_keys, v_distractor.en_key);
+        v_selected_es_keys := array_append(v_selected_es_keys, v_distractor.es_key);
+        v_selected_pt_keys := array_append(v_selected_pt_keys, v_distractor.pt_key);
+
+        exit when array_length(v_option_ids, 1) >= 4;
+      end loop;
+    end if;
+
+    select array_agg(option_id order by random())
+    into v_option_ids
+    from unnest(v_option_ids) as option_id;
 
     insert into public.quiz_questions (
       session_id,
@@ -710,6 +838,8 @@ declare
   v_points integer := 0;
   v_correct boolean := false;
   v_remaining numeric := 0;
+  v_active_participant_count integer := 0;
+  v_answered_count integer := 0;
   v_guest_token text := nullif(trim(coalesce(p_guest_token, '')), '');
 begin
   select * into v_session from public.quiz_sessions where id = p_session_id;
@@ -801,6 +931,32 @@ begin
     last_seen_at = now()
   where id = p_participant_id;
 
+  select count(*)
+  into v_active_participant_count
+  from public.quiz_participants
+  where session_id = p_session_id
+    and is_removed = false;
+
+  if v_active_participant_count > 0 and v_question.question_order = v_session.current_question_index then
+    select count(distinct qa.participant_id)
+    into v_answered_count
+    from public.quiz_answers qa
+    join public.quiz_participants qp
+      on qp.id = qa.participant_id
+     and qp.session_id = qa.session_id
+    where qa.session_id = p_session_id
+      and qa.question_id = p_question_id
+      and qp.is_removed = false;
+
+    if v_answered_count >= v_active_participant_count then
+      update public.quiz_sessions
+      set question_ends_at = now()
+      where id = p_session_id
+        and status = 'active'
+        and current_question_index = v_question.question_order;
+    end if;
+  end if;
+
   return jsonb_build_object(
     'is_correct', v_correct,
     'points', v_points
@@ -877,6 +1033,83 @@ begin
 end;
 $$;
 
+create or replace function public.quiz_set_question_duration(
+  p_session_id uuid,
+  p_question_duration_seconds integer
+)
+returns public.quiz_sessions
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session public.quiz_sessions%rowtype;
+  v_duration integer := greatest(5, least(coalesce(p_question_duration_seconds, 20), 120));
+begin
+  select * into v_session from public.quiz_sessions where id = p_session_id;
+  if v_session.id is null then
+    raise exception 'Quiz not found';
+  end if;
+
+  if auth.uid() is null or (v_session.host_user_id <> auth.uid() and not public.is_admin(auth.uid())) then
+    raise exception 'Only the host teacher can change duration';
+  end if;
+
+  update public.quiz_sessions
+  set
+    question_duration_seconds = v_duration,
+    question_ends_at = case
+      when status = 'active' and question_started_at is not null
+        then question_started_at + make_interval(secs => v_duration)
+      else question_ends_at
+    end
+  where id = p_session_id
+  returning * into v_session;
+
+  return v_session;
+end;
+$$;
+
+create or replace function public.quiz_close_current_question(
+  p_session_id uuid
+)
+returns public.quiz_sessions
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_session public.quiz_sessions%rowtype;
+begin
+  select * into v_session from public.quiz_sessions where id = p_session_id;
+  if v_session.id is null then
+    raise exception 'Quiz not found';
+  end if;
+
+  if auth.uid() is null or (v_session.host_user_id <> auth.uid() and not public.is_admin(auth.uid())) then
+    raise exception 'Only the host teacher can close the question';
+  end if;
+
+  if v_session.status <> 'active' then
+    return v_session;
+  end if;
+
+  update public.quiz_sessions
+  set question_ends_at = now()
+  where id = p_session_id
+    and status = 'active'
+    and question_ends_at is not null
+    and question_ends_at > now()
+  returning * into v_session;
+
+  if v_session.id is null then
+    select * into v_session from public.quiz_sessions where id = p_session_id;
+  end if;
+
+  return v_session;
+end;
+$$;
+
 create or replace function public.quiz_remove_participant(
   p_session_id uuid,
   p_participant_id uuid
@@ -940,6 +1173,8 @@ grant execute on function public.quiz_start_session_multi(uuid[], integer, integ
 grant execute on function public.quiz_join_session(text, text, text) to anon, authenticated;
 grant execute on function public.quiz_submit_answer(uuid, uuid, uuid, uuid, text) to anon, authenticated;
 grant execute on function public.quiz_advance_session(uuid, text) to authenticated;
+grant execute on function public.quiz_set_question_duration(uuid, integer) to authenticated;
+grant execute on function public.quiz_close_current_question(uuid) to authenticated;
 grant execute on function public.quiz_remove_participant(uuid, uuid) to authenticated;
 
 do $$

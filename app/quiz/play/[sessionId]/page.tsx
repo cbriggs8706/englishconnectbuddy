@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
-import { quizWord } from "@/lib/quiz";
-import { QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
+import { QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -18,6 +17,9 @@ const copy = {
     removed: "You were removed by the teacher.",
     finished: "Quiz finished",
     score: "Score",
+    you: "You",
+    correctAnswer: "Correct answer",
+    youChose: "You chose",
     podium: "Top 3",
   },
   es: {
@@ -26,6 +28,9 @@ const copy = {
     removed: "El maestro te quito del juego.",
     finished: "Quiz terminado",
     score: "Puntaje",
+    you: "Tu",
+    correctAnswer: "Respuesta correcta",
+    youChose: "Tu elegiste",
     podium: "Top 3",
   },
   pt: {
@@ -34,15 +39,18 @@ const copy = {
     removed: "Voce foi removido pelo professor.",
     finished: "Quiz encerrado",
     score: "Pontuacao",
+    you: "Voce",
+    correctAnswer: "Resposta correta",
+    youChose: "Voce escolheu",
     podium: "Top 3",
   },
 } as const;
 
 const optionToneClasses = [
-  "bg-fuchsia-500 text-white border-fuchsia-700",
-  "bg-cyan-500 text-white border-cyan-700",
-  "bg-amber-400 text-black border-amber-600",
-  "bg-lime-500 text-black border-lime-700",
+  "bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 text-white border-blue-900",
+  "bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 text-white border-red-900",
+  "bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 text-black border-amber-700",
+  "bg-gradient-to-br from-green-700 via-emerald-600 to-lime-500 text-white border-green-900",
 ];
 
 export default function QuizPlayPage() {
@@ -54,6 +62,7 @@ export default function QuizPlayPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [vocabMap, setVocabMap] = useState<Record<string, VocabularyItem>>({});
   const [participants, setParticipants] = useState<QuizParticipant[]>([]);
+  const [myAnswersByQuestion, setMyAnswersByQuestion] = useState<Record<string, string>>({});
   const [participantId] = useState<string | null>(() =>
     typeof window === "undefined" ? null : localStorage.getItem(`quiz-participant-${sessionId}`)
   );
@@ -71,7 +80,7 @@ export default function QuizPlayPage() {
     const supabase = createClient();
 
     async function load() {
-      const [sessionRes, questionsRes, participantsRes] = await Promise.all([
+      const [sessionRes, questionsRes, participantsRes, answersRes] = await Promise.all([
         supabase.from("quiz_sessions").select("*").eq("id", sessionId).single(),
         supabase
           .from("quiz_questions")
@@ -79,12 +88,24 @@ export default function QuizPlayPage() {
           .eq("session_id", sessionId)
           .order("question_order", { ascending: true }),
         supabase.from("quiz_participants").select("*").eq("session_id", sessionId),
+        participantId
+          ? supabase
+              .from("quiz_answers")
+              .select("question_id, selected_vocab_id")
+              .eq("session_id", sessionId)
+              .eq("participant_id", participantId)
+          : Promise.resolve({ data: [] as Pick<QuizAnswer, "question_id" | "selected_vocab_id">[] }),
       ]);
 
       if (sessionRes.data) setSession(sessionRes.data as QuizSession);
       const loadedQuestions = (questionsRes.data as QuizQuestion[]) ?? [];
       setQuestions(loadedQuestions);
       setParticipants((participantsRes.data as QuizParticipant[]) ?? []);
+      const nextAnswerMap: Record<string, string> = {};
+      for (const answer of (answersRes.data as Pick<QuizAnswer, "question_id" | "selected_vocab_id">[]) ?? []) {
+        nextAnswerMap[answer.question_id] = answer.selected_vocab_id;
+      }
+      setMyAnswersByQuestion(nextAnswerMap);
 
       const vocabIds = Array.from(
         new Set(loadedQuestions.flatMap((question) => [question.correct_vocab_id, ...question.option_vocab_ids]))
@@ -123,12 +144,31 @@ export default function QuizPlayPage() {
             .then(({ data }) => setParticipants((data as QuizParticipant[]) ?? []));
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "quiz_answers", filter: `session_id=eq.${sessionId}` },
+        () => {
+          if (!participantId) return;
+          void supabase
+            .from("quiz_answers")
+            .select("question_id, selected_vocab_id")
+            .eq("session_id", sessionId)
+            .eq("participant_id", participantId)
+            .then(({ data }) => {
+              const nextAnswerMap: Record<string, string> = {};
+              for (const answer of (data as Pick<QuizAnswer, "question_id" | "selected_vocab_id">[]) ?? []) {
+                nextAnswerMap[answer.question_id] = answer.selected_vocab_id;
+              }
+              setMyAnswersByQuestion(nextAnswerMap);
+            });
+        }
+      )
       .subscribe();
 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [sessionId]);
+  }, [sessionId, participantId]);
 
   const me = useMemo(
     () => participants.find((participant) => participant.id === participantId) ?? null,
@@ -151,9 +191,14 @@ export default function QuizPlayPage() {
     () => [...participants].filter((p) => !p.is_removed).sort((a, b) => b.score - a.score),
     [participants]
   );
+  const selectedOptionId = currentQuestion ? myAnswersByQuestion[currentQuestion.id] : null;
+  const selectedItem = selectedOptionId ? vocabMap[selectedOptionId] : null;
+  const correctItem = currentQuestion ? vocabMap[currentQuestion.correct_vocab_id] : null;
+  const selectedIsCorrect = !!currentQuestion && selectedOptionId === currentQuestion.correct_vocab_id;
 
   async function chooseAnswer(optionId: string) {
     if (!currentQuestion || !me || !questionOpen) return;
+    setMyAnswersByQuestion((prev) => ({ ...prev, [currentQuestion.id]: optionId }));
 
     const supabase = createClient();
     await supabase.rpc("quiz_submit_answer", {
@@ -175,7 +220,10 @@ export default function QuizPlayPage() {
 
       <Card>
         <CardContent className="flex items-center justify-between p-4">
-          <Badge>{session?.status ?? "waiting"}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge>{session?.status ?? "waiting"}</Badge>
+            <Badge variant="secondary">{text.you}: {me?.nickname ?? "..."}</Badge>
+          </div>
           <Badge variant="outline">{text.score}: {me?.score ?? 0}</Badge>
         </CardContent>
       </Card>
@@ -201,8 +249,9 @@ export default function QuizPlayPage() {
               Q{currentQuestion.question_order + 1} / {questions.length}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {currentQuestion.option_vocab_ids.map((optionId, index) => {
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              {currentQuestion.option_vocab_ids.map((optionId, index) => {
               const item = vocabMap[optionId];
               if (!item) return null;
               const isCorrect = optionId === currentQuestion.correct_vocab_id;
@@ -211,21 +260,32 @@ export default function QuizPlayPage() {
                   ? "ring-4 ring-lime-300"
                   : "border-zinc-400 bg-zinc-300 text-zinc-700"
                 : "";
+              const selectedClass =
+                !revealAnswer && selectedOptionId === optionId ? "ring-4 ring-white border-white" : "";
 
               return (
                 <Button
                   key={optionId}
                   variant="outline"
-                  className={`h-auto w-full justify-start whitespace-normal border-2 py-3 text-left ${
+                  className={`h-auto min-h-24 w-full justify-start whitespace-normal border-2 px-4 py-4 text-left text-xl font-black leading-tight sm:min-h-28 sm:text-2xl ${
                     optionToneClasses[index % optionToneClasses.length]
-                  } ${revealClass}`}
+                  } ${revealClass} ${selectedClass}`}
                   onClick={() => void chooseAnswer(optionId)}
                   disabled={!questionOpen || !!me?.is_removed}
                 >
-                  {quizWord(item, language)}
+                  {item.english_text}
                 </Button>
               );
-            })}
+              })}
+            </div>
+            {revealAnswer && currentQuestion ? (
+              <div className="mt-4 rounded-xl bg-slate-100 p-4 text-base font-semibold text-slate-900">
+                <p>{text.correctAnswer}: {correctItem?.english_text ?? "—"}</p>
+                {!selectedIsCorrect && selectedItem ? (
+                  <p className="mt-1 text-slate-700">{text.youChose}: {selectedItem.english_text}</p>
+                ) : null}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}

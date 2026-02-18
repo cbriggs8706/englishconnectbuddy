@@ -40,7 +40,7 @@ export function GameCard({
         <Button
           asChild
           size="sm"
-          className="w-full rounded-xl border-0 bg-white/95 font-bold text-foreground hover:bg-white"
+          className="w-full rounded-xl border-0 bg-white/95 font-bold text-slate-900 hover:bg-white"
         >
           <Link href={href}>
             {cta} <ArrowRight className="h-4 w-4" />

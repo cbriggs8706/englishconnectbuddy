@@ -75,6 +75,13 @@ export default function Home() {
           cta={copy.play}
         />
         <GameCard
+          title={copy.alphabet}
+          description={copy.homeAlphabetDesc}
+          href="/alphabet"
+          tone="purple"
+          cta={copy.play}
+        />
+        <GameCard
           title={copy.matching}
           description={copy.homeMatchingDesc}
           href="/match"
@@ -89,8 +96,15 @@ export default function Home() {
           cta={copy.play}
         />
         <GameCard
-          title="Live Quiz"
-          description="Join teacher-led vocabulary challenges in real time."
+          title={copy.patterns}
+          description={copy.homePatternsDesc}
+          href="/patterns"
+          tone="blue"
+          cta={copy.play}
+        />
+        <GameCard
+          title={copy.liveQuiz}
+          description={copy.homeLiveQuizDesc}
           href="/quiz"
           tone="purple"
           cta={copy.play}

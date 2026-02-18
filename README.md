@@ -21,6 +21,7 @@ Mobile-first language learning app to help Spanish and Portuguese speakers learn
   - Sentence Unscramble
 - Admin-only content management (lessons, vocabulary, sentence scrambles)
 - Supabase Storage uploads for vocab media in bucket `vocab`
+- Lesson pattern image uploads in bucket `patterns` (English + Spanish + Portuguese)
 
 ## Curriculum structure
 
@@ -80,6 +81,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 - If Supabase is not configured yet, the app uses demo lesson/vocab data so UI and gameplay still work.
 - Keep bucket `vocab` public for direct media playback in flashcards.
+- Keep bucket `patterns` public for direct pattern image rendering.
 - `seed_lessons.sql` creates a Level/Unit/Lesson scaffold with generated titles you can edit in admin.
 
 ## Spreadsheet import

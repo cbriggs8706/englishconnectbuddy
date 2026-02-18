@@ -45,6 +45,16 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </Link>
+          <Link href="/admin/patterns">
+            <Card>
+              <CardHeader>
+                <CardTitle>{copy.addPatterns}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                {copy.adminAddPatternsDesc}
+              </CardContent>
+            </Card>
+          </Link>
           <Link href="/admin/quiz-results">
             <Card>
               <CardHeader>
