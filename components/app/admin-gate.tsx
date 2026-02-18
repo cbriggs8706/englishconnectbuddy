@@ -11,17 +11,17 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   const copy = t(language);
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">{copy.adminLoading}</p>;
+    return <p className="text-base text-muted-foreground">{copy.adminLoading}</p>;
   }
 
   if (!user || !profile?.is_admin) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
-        <div className="mb-2 flex items-center gap-2 font-semibold">
-          <AlertTriangle className="h-4 w-4" />
+      <div className="rounded-2xl border-0 bg-gradient-to-r from-amber-400 to-orange-500 p-5 text-white shadow-lg shadow-amber-500/30">
+        <div className="mb-2 flex items-center gap-2 text-lg font-bold">
+          <AlertTriangle className="h-5 w-5" />
           {copy.adminOnly}
         </div>
-        <p className="text-sm">{copy.adminNeedAccount}</p>
+        <p className="text-base text-white/95">{copy.adminNeedAccount}</p>
       </div>
     );
   }

@@ -65,6 +65,16 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </Link>
+          <Link href="/admin/volunteer">
+            <Card>
+              <CardHeader>
+                <CardTitle>Volunteer Scheduler</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Manage volunteer timeslots, seat counts, and live signup names.
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </AdminGate>
     </AppShell>

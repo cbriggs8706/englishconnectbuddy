@@ -28,45 +28,45 @@ export default function Home() {
   return (
     <AppShell title={copy.appName} subtitle={copy.tagline}>
       <HomeInstallPrompt />
-      <Card className="border-lime-300 bg-gradient-to-r from-lime-600 via-green-600 to-emerald-600 text-white">
-        <CardContent className="space-y-2 p-4">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold">{copy.progress}</p>
-            <Badge variant="secondary" className="rounded-full bg-white text-lime-700">
-              {lessons.length} lessons
-            </Badge>
-          </div>
-          <p className="text-sm text-lime-50">{copy.optionalLogin}</p>
-          {user ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-lime-100">
-                <span>{activeCourse ? `EC${activeCourse.level}` : copy.progress}</span>
-                <span>
-                  {activeCourse
-                    ? `${Math.round(activeCourse.wordPercent)}% ${copy.masteredWords.toLowerCase()}`
-                    : copy.noProgressYet}
-                </span>
+      <section className="grid grid-cols-2 gap-3">
+        <Card className="col-span-2 border-0 bg-gradient-to-r from-lime-600 via-green-600 to-emerald-600 text-white shadow-xl shadow-green-500/30">
+          <CardContent className="space-y-3 p-5">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-base font-semibold">{copy.progress}</p>
+              <Badge variant="secondary" className="rounded-full bg-white text-lime-700">
+                {lessons.length} lessons
+              </Badge>
+            </div>
+            <p className="text-base text-lime-50">{copy.optionalLogin}</p>
+            {user ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm text-lime-100">
+                  <span>{activeCourse ? `EC${activeCourse.level}` : copy.progress}</span>
+                  <span>
+                    {activeCourse
+                      ? `${Math.round(activeCourse.wordPercent)}% ${copy.masteredWords.toLowerCase()}`
+                      : copy.noProgressYet}
+                  </span>
+                </div>
+                <Progress value={activeCourse?.wordPercent ?? 0} className="bg-white/20" />
               </div>
-              <Progress value={activeCourse?.wordPercent ?? 0} className="bg-white/20" />
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2 pt-1">
-              <Link href="/profile">
-                <Button size="sm" variant="secondary" className="bg-white text-lime-700 hover:bg-lime-100">
-                  {copy.signUp}
-                </Button>
-              </Link>
-              <Link href="/profile">
-                <Button size="sm" variant="secondary" className="bg-white text-lime-800 hover:bg-lime-100">
-                  {copy.signIn}
-                </Button>
-              </Link>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Link href="/profile">
+                  <Button size="sm" variant="secondary" className="bg-white text-lime-700 hover:bg-lime-100">
+                    {copy.signUp}
+                  </Button>
+                </Link>
+                <Link href="/profile">
+                  <Button size="sm" variant="secondary" className="bg-white text-lime-800 hover:bg-lime-100">
+                    {copy.signIn}
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <section className="space-y-3">
         <GameCard
           title={copy.flashcards}
           description={copy.homeFlashcardsDesc}
@@ -92,19 +92,19 @@ export default function Home() {
           title="Live Quiz"
           description="Join teacher-led vocabulary challenges in real time."
           href="/quiz"
-          tone="blue"
+          tone="purple"
           cta={copy.play}
         />
-      </section>
 
-      <Card className="border-sky-200 bg-gradient-to-r from-sky-50 to-violet-50 dark:from-sky-950/30 dark:to-violet-950/30">
-        <CardContent className="p-4">
-          <p className="text-sm font-semibold text-sky-800 dark:text-sky-300">{copy.curriculum}</p>
-          <p className="mt-1 text-sm text-sky-900/80 dark:text-sky-100/80">
-            {vocab.length} {copy.vocabReady}
-          </p>
-        </CardContent>
-      </Card>
+        <Card className="col-span-2 border-0 bg-gradient-to-r from-sky-500 via-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/25">
+          <CardContent className="p-5">
+            <p className="text-base font-semibold">{copy.curriculum}</p>
+            <p className="mt-1 text-base text-white/90">
+              {vocab.length} {copy.vocabReady}
+            </p>
+          </CardContent>
+        </Card>
+      </section>
     </AppShell>
   );
 }

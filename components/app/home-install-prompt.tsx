@@ -53,13 +53,13 @@ export function HomeInstallPrompt() {
   if (!shouldPrompt || isStandalone()) return null;
 
   return (
-    <Card className="border-green-300 bg-green-50">
+    <Card className="border-0 bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30">
       <CardHeader>
-        <CardTitle className="text-base text-green-800">Add EnglishConnect Buddy to Home Screen</CardTitle>
+        <CardTitle className="text-white">Add EnglishConnect Buddy to Home Screen</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm text-green-900">
+      <CardContent className="space-y-3 text-base text-white/95">
         {deferredPrompt ? (
-          <Button onClick={() => void install()} className="w-full bg-green-600 hover:bg-green-700">
+          <Button onClick={() => void install()} className="w-full border-0 bg-white text-emerald-700 hover:bg-emerald-50">
             Add to Home Screen
           </Button>
         ) : null}

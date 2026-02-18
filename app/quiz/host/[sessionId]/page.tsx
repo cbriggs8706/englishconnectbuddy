@@ -100,6 +100,7 @@ export default function QuizHostSessionPage() {
   const promptImageUrl = resolveVocabMediaUrl(
     currentQuestion?.prompt_image_url ?? (currentQuestion ? vocabMap[currentQuestion.prompt_vocab_id]?.image_url : null)
   );
+  const promptItem = currentQuestion ? vocabMap[currentQuestion.prompt_vocab_id] : null;
 
   const leaderboard = useMemo(
     () =>
@@ -310,7 +311,7 @@ export default function QuizHostSessionPage() {
                       <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">{text.noImage}</p>
                         <p className="mt-2 text-5xl font-bold text-foreground">
-                          {vocabMap[currentQuestion?.prompt_vocab_id ?? ""]?.english_text ?? ""}
+                          {promptItem ? optionLabel(promptItem, language) : ""}
                         </p>
                       </div>
                     )}

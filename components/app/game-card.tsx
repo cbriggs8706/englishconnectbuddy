@@ -4,15 +4,17 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const toneStyles = {
-  green: "border-lime-200 dark:border-lime-700/50 bg-white/95 dark:bg-card",
-  blue: "border-sky-200 dark:border-sky-700/50 bg-white/95 dark:bg-card",
-  yellow: "border-amber-200 dark:border-amber-700/50 bg-white/95 dark:bg-card",
+  green: "border-0 bg-gradient-to-br from-lime-500 via-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25",
+  blue: "border-0 bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25",
+  yellow: "border-0 bg-gradient-to-br from-amber-400 via-orange-400 to-red-400 text-white shadow-lg shadow-orange-500/25",
+  purple: "border-0 bg-gradient-to-br from-fuchsia-500 via-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25",
 } as const;
 
 const titleStyles = {
-  green: "text-lime-700 dark:text-lime-300",
-  blue: "text-sky-700 dark:text-sky-300",
-  yellow: "text-amber-700 dark:text-amber-300",
+  green: "text-white",
+  blue: "text-white",
+  yellow: "text-white",
+  purple: "text-white",
 } as const;
 
 export function GameCard({
@@ -29,13 +31,17 @@ export function GameCard({
   cta?: string;
 }) {
   return (
-    <Card className={`shadow-sm ${toneStyles[tone]}`}>
-      <CardHeader className="pb-2">
-        <CardTitle className={`text-base ${titleStyles[tone]}`}>{title}</CardTitle>
+    <Card className={`gap-3 py-4 ${toneStyles[tone]}`}>
+      <CardHeader className="pb-1">
+        <CardTitle className={`text-lg ${titleStyles[tone]}`}>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="flex items-center justify-between gap-4">
-        <p className="text-sm text-foreground/80">{description}</p>
-        <Button asChild size="sm" className="rounded-xl">
+      <CardContent className="flex flex-col gap-4">
+        <p className="text-base text-white/95">{description}</p>
+        <Button
+          asChild
+          size="sm"
+          className="w-full rounded-xl border-0 bg-white/95 font-bold text-foreground hover:bg-white"
+        >
           <Link href={href}>
             {cta} <ArrowRight className="h-4 w-4" />
           </Link>

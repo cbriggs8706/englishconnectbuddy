@@ -82,10 +82,13 @@ export default function ProfilePage() {
     }
 
     const supabase = createClient();
+    const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    const normalizedSiteUrl = configuredSiteUrl?.replace(/\/+$/, "");
+    const redirectBase = normalizedSiteUrl || window.location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: `${redirectBase}/profile`,
       },
     });
 
@@ -164,11 +167,18 @@ export default function ProfilePage() {
               Save profile
             </Button>
             {profile?.is_admin ? (
-              <Link href="/admin">
-                <Button variant="outline" className="w-full">
-                  Admin Panel
-                </Button>
-              </Link>
+              <div className="space-y-2">
+                <Link href="/admin">
+                  <Button variant="outline" className="w-full">
+                    Admin Panel
+                  </Button>
+                </Link>
+                <Link href="/admin/volunteer">
+                  <Button variant="outline" className="w-full">
+                    Volunteer Scheduler
+                  </Button>
+                </Link>
+              </div>
             ) : null}
             <Button onClick={handleSignOut}>{copy.signOut}</Button>
           </CardContent>

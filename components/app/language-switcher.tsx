@@ -21,9 +21,9 @@ export function LanguageSwitcher() {
       size="sm"
       onClick={() => setLanguage(nextLanguage)}
       aria-label={`${copy.selectLanguage}: ${languageNames[language]}. Next: ${languageNames[nextLanguage]}`}
-      className="h-9 rounded-full border border-border/70 bg-card/90 px-3 shadow-sm"
+      className="h-10 rounded-full border-0 bg-linear-to-r from-cyan-500 to-blue-500 px-4 text-white shadow-sm hover:from-cyan-500/90 hover:to-blue-500/90"
     >
-      <Languages className="mr-1.5 h-3.5 w-3.5" />
+      <Languages className="mr-1.5 h-4 w-4" />
       {languageNames[language]}
     </Button>
   );

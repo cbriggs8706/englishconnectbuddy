@@ -130,3 +130,21 @@ export type QuizAnswer = {
   points: number;
   answered_at: string;
 };
+
+export type VolunteerSlot = {
+  id: string;
+  starts_at: string;
+  seats_available: number;
+  details: string | null;
+  is_active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VolunteerSignup = {
+  id: string;
+  slot_id: string;
+  volunteer_name: string;
+  created_at: string;
+};

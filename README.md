@@ -42,6 +42,7 @@ cp .env.example .env.local
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SITE_URL` (your production origin, e.g. `https://englishconnectbuddy.com`)
 
 3. In Supabase SQL editor, run:
 
@@ -54,7 +55,10 @@ cp .env.example .env.local
 4. In Supabase Auth settings:
 
 - Enable Google provider
-- Add redirect URL: `http://localhost:3000/profile` (and your production profile URL)
+- Add redirect URLs:
+  - `http://localhost:3000/profile`
+  - `https://your-production-domain.com/profile`
+- Set site URL to your production origin (not localhost)
 
 5. Create your account via the app (`/profile`), then promote your profile to admin in SQL editor:
 

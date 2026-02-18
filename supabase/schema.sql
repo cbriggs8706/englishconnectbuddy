@@ -280,6 +280,85 @@ using (bucket_id = 'vocab' and public.is_admin(auth.uid()));
 -- promote first admin manually (replace with your user id)
 -- update public.profiles set is_admin = true where id = 'YOUR-USER-UUID';
 
+-- Volunteer scheduling
+create table if not exists public.volunteer_slots (
+  id uuid primary key default gen_random_uuid(),
+  starts_at timestamptz not null,
+  seats_available integer not null default 1 check (seats_available > 0),
+  details text,
+  is_active boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists volunteer_slots_starts_at_idx on public.volunteer_slots (starts_at);
+create index if not exists volunteer_slots_active_starts_at_idx on public.volunteer_slots (is_active, starts_at);
+
+create table if not exists public.volunteer_signups (
+  id uuid primary key default gen_random_uuid(),
+  slot_id uuid not null references public.volunteer_slots(id) on delete cascade,
+  volunteer_name text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists volunteer_signups_slot_id_idx on public.volunteer_signups (slot_id);
+create unique index if not exists volunteer_signups_slot_name_unique_idx
+on public.volunteer_signups (slot_id, lower(trim(volunteer_name)));
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists set_volunteer_slots_updated_at on public.volunteer_slots;
+create trigger set_volunteer_slots_updated_at
+before update on public.volunteer_slots
+for each row execute function public.set_updated_at();
+
+alter table public.volunteer_slots enable row level security;
+alter table public.volunteer_signups enable row level security;
+
+drop policy if exists "volunteer slots readable by all" on public.volunteer_slots;
+create policy "volunteer slots readable by all"
+on public.volunteer_slots for select
+using (true);
+
+drop policy if exists "volunteer slots admin write" on public.volunteer_slots;
+create policy "volunteer slots admin write"
+on public.volunteer_slots for all
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
+drop policy if exists "volunteer signups readable by all" on public.volunteer_signups;
+create policy "volunteer signups readable by all"
+on public.volunteer_signups for select
+using (true);
+
+drop policy if exists "volunteer signups open insert" on public.volunteer_signups;
+create policy "volunteer signups open insert"
+on public.volunteer_signups for insert
+with check (
+  length(trim(volunteer_name)) > 0
+  and exists (
+    select 1
+    from public.volunteer_slots s
+    where s.id = slot_id
+      and s.is_active = true
+  )
+);
+
+drop policy if exists "volunteer signups admin write" on public.volunteer_signups;
+create policy "volunteer signups admin write"
+on public.volunteer_signups for all
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
 -- Live quiz
 create table if not exists public.quiz_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -387,7 +466,8 @@ declare
   v_option_ids uuid[];
   v_lesson_ids uuid[];
   v_primary_lesson uuid;
-  v_question_count integer := greatest(1, least(coalesce(p_question_count, 10), 50));
+  v_available_count integer := 0;
+  v_question_count integer;
   v_duration integer := greatest(5, least(coalesce(p_question_duration_seconds, 20), 60));
   v_order integer := 0;
 begin
@@ -405,6 +485,17 @@ begin
   if auth.uid() is null or not public.is_admin(auth.uid()) then
     raise exception 'Only teachers can host quizzes';
   end if;
+
+  select count(*)
+  into v_available_count
+  from public.vocabulary
+  where lesson_id = any(v_lesson_ids);
+
+  if v_available_count = 0 then
+    raise exception 'No vocabulary exists for the selected lessons';
+  end if;
+
+  v_question_count := greatest(1, least(coalesce(p_question_count, v_available_count), v_available_count));
 
   loop
     v_join_code := public.make_quiz_join_code();
@@ -869,6 +960,18 @@ begin
     select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'quiz_answers'
   ) then
     alter publication supabase_realtime add table public.quiz_answers;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'volunteer_slots'
+  ) then
+    alter publication supabase_realtime add table public.volunteer_slots;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'volunteer_signups'
+  ) then
+    alter publication supabase_realtime add table public.volunteer_signups;
   end if;
 end
 $$;
