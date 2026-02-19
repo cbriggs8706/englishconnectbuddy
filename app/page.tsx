@@ -18,9 +18,11 @@ export default function Home() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
-  const { user } = useAuth();
-  const { courseStats } = useCourseProgress({ lessons, vocab, user });
+  const { user, profile } = useAuth();
+  const selectedCourse = profile?.selected_course ?? null;
+  const { courseStats } = useCourseProgress({ lessons, vocab, user, selectedCourse });
   const activeCourse =
+    courseStats.find((course) => course.course === selectedCourse) ??
     courseStats.find((course) => course.wordPercent > 0 && course.wordPercent < 100) ??
     courseStats.find((course) => course.wordPercent < 100) ??
     courseStats[courseStats.length - 1];
@@ -41,7 +43,7 @@ export default function Home() {
             {user ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm text-lime-100">
-                  <span>{activeCourse ? `EC${activeCourse.level}` : copy.progress}</span>
+                  <span>{activeCourse ? activeCourse.course : copy.progress}</span>
                   <span>
                     {activeCourse
                       ? `${Math.round(activeCourse.wordPercent)}% ${copy.masteredWords.toLowerCase()}`
@@ -79,6 +81,20 @@ export default function Home() {
           description={copy.homeAlphabetDesc}
           href="/alphabet"
           tone="purple"
+          cta={copy.play}
+        />
+        <GameCard
+          title={copy.numbers}
+          description={copy.homeNumbersDesc}
+          href="/numbers"
+          tone="blue"
+          cta={copy.play}
+        />
+        <GameCard
+          title={copy.hearing}
+          description={copy.homeHearingDesc}
+          href="/hearing"
+          tone="yellow"
           cta={copy.play}
         />
         <GameCard

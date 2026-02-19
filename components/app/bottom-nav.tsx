@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
-import { BookOpen, ChartNoAxesColumn, Home, Layers, Menu, Shuffle, Trophy, UserRound, Users } from "lucide-react";
+import { AudioLines, BookOpen, ChartNoAxesColumn, Hash, Home, Layers, Menu, Shuffle, Trophy, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -24,6 +24,8 @@ export function BottomNav() {
   const activityLinks = useMemo(
     () => [
       { href: "/alphabet", label: copy.alphabet, icon: BookOpen },
+      { href: "/numbers", label: copy.numbers, icon: Hash },
+      { href: "/hearing", label: copy.hearing, icon: AudioLines },
       { href: "/flashcards", label: copy.flashcards, icon: Layers },
       { href: "/match", label: copy.matching, icon: Shuffle },
       { href: "/unscramble", label: copy.unscramble, icon: BookOpen },

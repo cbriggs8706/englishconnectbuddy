@@ -18,6 +18,7 @@ export default function AdminLessonsPage() {
   const { lessons } = useCurriculum();
   const [message, setMessage] = useState<string | null>(null);
 
+  const [course, setCourse] = useState("EC1");
   const [level, setLevel] = useState(1);
   const [unit, setUnit] = useState(1);
   const [lessonNumber, setLessonNumber] = useState(1);
@@ -34,8 +35,12 @@ export default function AdminLessonsPage() {
     }
 
     const supabase = createClient();
+    const normalizedCourse = course.trim().toUpperCase();
+    const parsedLevel = Number.parseInt(normalizedCourse.replace(/[^0-9]/g, ""), 10);
+    const levelValue = Number.isFinite(parsedLevel) ? parsedLevel : level;
     const { error } = await supabase.from("lessons").insert({
-      level,
+      course: normalizedCourse || `EC${levelValue}`,
+      level: levelValue,
       unit,
       lesson_number: lessonNumber,
       sequence_number: sequenceNumber,
@@ -45,7 +50,7 @@ export default function AdminLessonsPage() {
       description_en: null,
       description_es: null,
       description_pt: null,
-      sort_order: level * 100 + sequenceNumber,
+      sort_order: levelValue * 100 + sequenceNumber,
     });
 
     setMessage(error ? error.message : copy.lessonAdded);
@@ -64,7 +69,15 @@ export default function AdminLessonsPage() {
         <Card>
           <CardContent className="p-4">
             <form className="space-y-3" onSubmit={onSubmit}>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                <div className="space-y-1">
+                  <Label>Course</Label>
+                  <Input
+                    value={course}
+                    onChange={(event) => setCourse(event.target.value.toUpperCase())}
+                    required
+                  />
+                </div>
                 <div className="space-y-1">
                   <Label>{copy.level}</Label>
                   <Input

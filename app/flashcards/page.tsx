@@ -34,7 +34,8 @@ export default function FlashcardsPage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const selectedCourse = profile?.selected_course ?? null;
 
   const [selectedLesson, setSelectedLesson] = useState<string>("");
   const [mode, setMode] = useState<FlashcardMode>("image-audio");
@@ -43,9 +44,26 @@ export default function FlashcardsPage() {
   const [failedImageSrcs, setFailedImageSrcs] = useState<Record<string, true>>({});
   const [dbProgressMap, setDbProgressMap] = useState<Record<string, FlashcardProgress>>({});
   const [guestProgressMap, setGuestProgressMap] = useState(loadGuestProgress());
-  const { defaultLessonId } = useCourseProgress({ lessons, vocab, user });
+  const { defaultLessonId } = useCourseProgress({
+    lessons,
+    vocab,
+    user,
+    selectedCourse,
+  });
 
   const activeLesson = selectedLesson || defaultLessonId || "all";
+  const visibleLessons = useMemo(
+    () => lessons.filter((lesson) => !selectedCourse || lesson.course === selectedCourse),
+    [lessons, selectedCourse]
+  );
+  const visibleLessonIds = useMemo(
+    () => new Set(visibleLessons.map((lesson) => lesson.id)),
+    [visibleLessons]
+  );
+  const courseVocab = useMemo(
+    () => (!selectedCourse ? vocab : vocab.filter((item) => visibleLessonIds.has(item.lesson_id))),
+    [selectedCourse, visibleLessonIds, vocab]
+  );
 
   useEffect(() => {
     if (!user || !supabaseConfigured()) return;
@@ -72,9 +90,9 @@ export default function FlashcardsPage() {
   }, [user, mode]);
 
   const filtered = useMemo(() => {
-    if (activeLesson === "all") return vocab;
-    return vocab.filter((item) => item.lesson_id === activeLesson);
-  }, [vocab, activeLesson]);
+    if (activeLesson === "all") return courseVocab;
+    return courseVocab.filter((item) => item.lesson_id === activeLesson);
+  }, [courseVocab, activeLesson]);
 
   function getProgress(vocabId: string) {
     if (user) {
@@ -293,7 +311,7 @@ export default function FlashcardsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{copy.allLessons}</SelectItem>
-              {lessons.map((lesson) => (
+              {visibleLessons.map((lesson) => (
                 <SelectItem key={lesson.id} value={lesson.id}>
                   {lessonLabel(lesson, language)}
                 </SelectItem>

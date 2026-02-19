@@ -58,13 +58,23 @@ export default function PatternsPage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
-  const { user } = useAuth();
-  const { defaultLessonId } = useCourseProgress({ lessons, vocab, user });
+  const { user, profile } = useAuth();
+  const selectedCourse = profile?.selected_course ?? null;
+  const { defaultLessonId } = useCourseProgress({
+    lessons,
+    vocab,
+    user,
+    selectedCourse,
+  });
   const [selectedLesson, setSelectedLesson] = useState<string>("");
   const [patternsByLesson, setPatternsByLesson] = useState<PatternMap>({});
   const [message, setMessage] = useState<string | null>(null);
 
-  const activeLessonId = selectedLesson || defaultLessonId || lessons[0]?.id || "";
+  const visibleLessons = useMemo(
+    () => lessons.filter((lesson) => !selectedCourse || lesson.course === selectedCourse),
+    [lessons, selectedCourse]
+  );
+  const activeLessonId = selectedLesson || defaultLessonId || visibleLessons[0]?.id || "";
   const activePattern = useMemo(
     () => (activeLessonId ? patternsByLesson[activeLessonId] : undefined),
     [activeLessonId, patternsByLesson]
@@ -132,7 +142,7 @@ export default function PatternsPage() {
                 <SelectValue placeholder={copy.selectLesson} />
               </SelectTrigger>
               <SelectContent>
-                {lessons.map((lesson) => (
+                {visibleLessons.map((lesson) => (
                   <SelectItem key={lesson.id} value={lesson.id}>
                     {lessonLabel(lesson, language)}
                   </SelectItem>

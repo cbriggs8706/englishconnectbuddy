@@ -1,15 +1,17 @@
 "use client";
 
 import { AppShell } from "@/components/app/app-shell";
+import { useCurriculum } from "@/components/app/use-curriculum";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { t } from "@/lib/i18n";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 function GoogleLogo() {
@@ -39,12 +41,28 @@ export default function ProfilePage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { user, profile, refreshProfile } = useAuth();
+  const { lessons } = useCurriculum();
+  const courseOptions = useMemo(
+    () => Array.from(new Set(lessons.map((lesson) => lesson.course))).sort((a, b) => a.localeCompare(b)),
+    [lessons]
+  );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [realName, setRealName] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState("EC1");
+
+  useEffect(() => {
+    if (profile?.selected_course?.trim()) {
+      setSelectedCourse(profile.selected_course);
+      return;
+    }
+    if (!profile?.selected_course && courseOptions.length > 0) {
+      setSelectedCourse(courseOptions[0]);
+    }
+  }, [courseOptions, profile?.selected_course]);
 
   async function saveNames() {
     if (!supabaseConfigured() || !user) return;
@@ -55,6 +73,7 @@ export default function ProfilePage() {
         real_name: (realName ?? profile?.real_name ?? "").trim(),
         nickname: (nickname ?? profile?.nickname ?? "").trim(),
         display_name: (nickname ?? profile?.nickname ?? "").trim(),
+        selected_course: selectedCourse.trim() || "EC1",
       })
       .eq("id", user.id);
     setMessage(error ? error.message : "Profile saved.");
@@ -68,7 +87,16 @@ export default function ProfilePage() {
     }
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({ email, password });
+    const chosenCourse = selectedCourse.trim() || "EC1";
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          course: chosenCourse,
+        },
+      },
+    });
     setMessage(error ? error.message : copy.accountCreated);
     await refreshProfile();
   }
@@ -185,6 +213,25 @@ export default function ProfilePage() {
                     {copy.signUp}
                   </Button>
                 </div>
+                <div className="space-y-1">
+                  <Label className="text-slate-700">Course</Label>
+                  <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Choose a course" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courseOptions.length > 0 ? (
+                        courseOptions.map((course) => (
+                          <SelectItem key={course} value={course}>
+                            {course}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="EC1">EC1</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </form>
           </CardContent>
@@ -205,6 +252,25 @@ export default function ProfilePage() {
                 onChange={(event) => setNickname(event.target.value)}
                 value={nickname ?? profile?.nickname ?? ""}
               />
+            </div>
+            <div className="space-y-1">
+              <Label>Course</Label>
+              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courseOptions.length > 0 ? (
+                    courseOptions.map((course) => (
+                      <SelectItem key={course} value={course}>
+                        {course}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value={selectedCourse || "EC1"}>{selectedCourse || "EC1"}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             <Button variant="secondary" onClick={() => void saveNames()}>
               Save profile

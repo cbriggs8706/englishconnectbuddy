@@ -7,6 +7,7 @@ export type FlashcardMode =
 
 export type Lesson = {
   id: string;
+  course: string;
   level: number;
   unit: number;
   lesson_number: number;
@@ -83,6 +84,7 @@ export type Profile = {
   display_name: string | null;
   real_name: string | null;
   nickname: string | null;
+  selected_course: string;
   native_language: Language | null;
   is_admin: boolean;
 };

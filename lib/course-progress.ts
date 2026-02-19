@@ -3,6 +3,7 @@ import { Lesson, VocabularyItem } from "@/lib/types";
 
 export type LessonProgressStat = {
   lessonId: string;
+  course: string;
   level: number;
   sequenceNumber: number;
   totalWords: number;
@@ -11,6 +12,7 @@ export type LessonProgressStat = {
 };
 
 export type CourseProgressStat = {
+  course: string;
   level: number;
   totalLessons: number;
   completedLessons: number;
@@ -23,7 +25,10 @@ export type CourseProgressStat = {
 };
 
 function lessonSort(a: Lesson, b: Lesson) {
-  if (a.level !== b.level) return a.level - b.level;
+  if (a.course !== b.course) {
+    if (a.level !== b.level) return a.level - b.level;
+    return a.course.localeCompare(b.course);
+  }
   return a.sequence_number - b.sequence_number;
 }
 
@@ -60,6 +65,7 @@ export function buildLessonStats(
 
     stats[lesson.id] = {
       lessonId: lesson.id,
+      course: lesson.course,
       level: lesson.level,
       sequenceNumber: lesson.sequence_number,
       totalWords,
@@ -73,9 +79,12 @@ export function buildLessonStats(
 
 export function defaultLessonAfterLargestCompleted(
   lessons: Lesson[],
-  lessonStats: Record<string, LessonProgressStat>
+  lessonStats: Record<string, LessonProgressStat>,
+  course?: string
 ) {
-  const ordered = [...lessons].sort(lessonSort);
+  const ordered = [...lessons]
+    .filter((lesson) => !course || lesson.course === course)
+    .sort(lessonSort);
   if (ordered.length === 0) return null;
 
   let largestCompletedIndex = -1;
@@ -97,17 +106,18 @@ export function buildCourseStats(
   lessons: Lesson[],
   lessonStats: Record<string, LessonProgressStat>
 ) {
-  const byLevel = new Map<number, Lesson[]>();
+  const byCourse = new Map<string, Lesson[]>();
   for (const lesson of lessons) {
-    const existing = byLevel.get(lesson.level) ?? [];
+    const existing = byCourse.get(lesson.course) ?? [];
     existing.push(lesson);
-    byLevel.set(lesson.level, existing);
+    byCourse.set(lesson.course, existing);
   }
 
   const stats: CourseProgressStat[] = [];
-  for (const [level, grouped] of byLevel.entries()) {
+  for (const [course, grouped] of byCourse.entries()) {
     const ordered = [...grouped].sort((a, b) => a.sequence_number - b.sequence_number);
     const totalLessons = ordered.length;
+    const level = ordered[0]?.level ?? 0;
 
     let completedLessons = 0;
     let totalWords = 0;
@@ -135,6 +145,7 @@ export function buildCourseStats(
     }
 
     stats.push({
+      course,
       level,
       totalLessons,
       completedLessons,
@@ -147,5 +158,8 @@ export function buildCourseStats(
     });
   }
 
-  return stats.sort((a, b) => a.level - b.level);
+  return stats.sort((a, b) => {
+    if (a.level !== b.level) return a.level - b.level;
+    return a.course.localeCompare(b.course);
+  });
 }

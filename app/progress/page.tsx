@@ -15,20 +15,25 @@ export default function ProgressPage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
-  const { user } = useAuth();
-  const { courseStats, lessonStats } = useCourseProgress({ lessons, vocab, user });
+  const { user, profile } = useAuth();
+  const { courseStats, lessonStats } = useCourseProgress({
+    lessons,
+    vocab,
+    user,
+    selectedCourse: profile?.selected_course ?? null,
+  });
 
-  const lessonsByLevel = new Map<number, typeof lessons>();
+  const lessonsByCourse = new Map<string, typeof lessons>();
   for (const lesson of lessons) {
-    const existing = lessonsByLevel.get(lesson.level) ?? [];
+    const existing = lessonsByCourse.get(lesson.course) ?? [];
     existing.push(lesson);
-    lessonsByLevel.set(lesson.level, existing);
+    lessonsByCourse.set(lesson.course, existing);
   }
 
   return (
     <AppShell title={copy.progress}>
       {courseStats.map((course) => {
-        const courseLessons = (lessonsByLevel.get(course.level) ?? []).sort(
+        const courseLessons = (lessonsByCourse.get(course.course) ?? []).sort(
           (a, b) => a.sequence_number - b.sequence_number
         );
         const nextLesson = course.nextLessonId
@@ -36,9 +41,9 @@ export default function ProgressPage() {
           : null;
 
         return (
-          <Card key={course.level}>
+          <Card key={course.course}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">EC{course.level}</CardTitle>
+              <CardTitle className="text-base">{course.course}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">

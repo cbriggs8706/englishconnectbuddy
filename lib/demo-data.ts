@@ -3,6 +3,7 @@ import { Lesson, SentenceScramble, VocabularyItem } from "@/lib/types";
 export const demoLessons: Lesson[] = [
   {
     id: "demo-lesson-1",
+    course: "EC1",
     level: 1,
     unit: 1,
     lesson_number: 1,

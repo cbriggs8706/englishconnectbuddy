@@ -15,10 +15,12 @@ export function useCourseProgress({
   lessons,
   vocab,
   user,
+  selectedCourse,
 }: {
   lessons: Lesson[];
   vocab: VocabularyItem[];
   user: User | null;
+  selectedCourse?: string | null;
 }) {
   const [masteredMap, setMasteredMap] = useState<Record<string, true>>(() =>
     user ? {} : buildGuestMasteredMap()
@@ -80,8 +82,8 @@ export function useCourseProgress({
   );
 
   const defaultLessonId = useMemo(
-    () => defaultLessonAfterLargestCompleted(lessons, lessonStats),
-    [lessons, lessonStats]
+    () => defaultLessonAfterLargestCompleted(lessons, lessonStats, selectedCourse ?? undefined),
+    [lessons, lessonStats, selectedCourse]
   );
 
   const courseStats = useMemo(

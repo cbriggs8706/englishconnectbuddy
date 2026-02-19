@@ -5,6 +5,36 @@ import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 import { Lesson, SentenceScramble, VocabularyItem } from "@/lib/types";
 import { useEffect, useState } from "react";
 
+const PAGE_SIZE = 1000;
+
+async function fetchAllVocabulary() {
+  const supabase = createClient();
+  const allRows: VocabularyItem[] = [];
+  let from = 0;
+
+  while (true) {
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await supabase
+      .from("vocabulary")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .range(from, to);
+
+    if (error || !data) {
+      return { data: null, error: error ?? new Error("No vocabulary data returned") };
+    }
+
+    const batch = data as VocabularyItem[];
+    allRows.push(...batch);
+    if (batch.length < PAGE_SIZE) {
+      break;
+    }
+    from += PAGE_SIZE;
+  }
+
+  return { data: allRows, error: null };
+}
+
 export function useCurriculum() {
   const [lessons, setLessons] = useState<Lesson[]>(demoLessons);
   const [vocab, setVocab] = useState<VocabularyItem[]>(demoVocabulary);
@@ -23,9 +53,9 @@ export function useCurriculum() {
         supabase
           .from("lessons")
           .select("*")
-          .order("level", { ascending: true })
+          .order("course", { ascending: true })
           .order("sequence_number", { ascending: true }),
-        supabase.from("vocabulary").select("*").order("created_at", { ascending: true }),
+        fetchAllVocabulary(),
         supabase
           .from("sentence_scrambles")
           .select("*")

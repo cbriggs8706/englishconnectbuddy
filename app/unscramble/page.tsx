@@ -2,6 +2,7 @@
 
 import { AppShell } from "@/components/app/app-shell";
 import { useCurriculum } from "@/components/app/use-curriculum";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,6 +78,8 @@ export default function UnscramblePage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
+  const { profile } = useAuth();
+  const selectedCourse = profile?.selected_course ?? null;
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
@@ -89,6 +92,11 @@ export default function UnscramblePage() {
 
   const rounds = useMemo<PhraseRound[]>(() => {
     return vocab
+      .filter((item) => {
+        if (!selectedCourse) return true;
+        const lesson = lessons.find((entry) => entry.id === item.lesson_id);
+        return lesson?.course === selectedCourse;
+      })
       .filter((item) => item.item_type?.toLowerCase() === "phrase")
       .map((item) => ({
         id: item.id,
@@ -102,7 +110,7 @@ export default function UnscramblePage() {
               : item.english_text,
       }))
       .filter((item) => tokenize(item.sentence).length > 1);
-  }, [language, lessonLabelsById, vocab]);
+  }, [language, lessonLabelsById, lessons, selectedCourse, vocab]);
 
   const current = rounds[index];
 

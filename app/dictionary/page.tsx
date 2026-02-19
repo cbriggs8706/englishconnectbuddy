@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -21,7 +22,7 @@ import { t } from "@/lib/i18n";
 import { resolveVocabMediaUrl } from "@/lib/media";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 import { loadGuestProgress, progressKey } from "@/lib/spaced-repetition";
-import { FlashcardMode, FlashcardProgress } from "@/lib/types";
+import { FlashcardMode, FlashcardProgress, VocabularyItem } from "@/lib/types";
 import { Headphones, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -29,14 +30,32 @@ export default function DictionaryPage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const selectedCourse = profile?.selected_course ?? null;
 
   const [selectedLesson, setSelectedLesson] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [mode, setMode] = useState<FlashcardMode>("image-audio");
   const [dbProgressMap, setDbProgressMap] = useState<Record<string, FlashcardProgress>>({});
   const [guestProgressMap] = useState(loadGuestProgress());
-  const { defaultLessonId } = useCourseProgress({ lessons, vocab, user });
+  const { defaultLessonId } = useCourseProgress({
+    lessons,
+    vocab,
+    user,
+    selectedCourse,
+  });
   const activeLesson = selectedLesson || defaultLessonId || "all";
+  const visibleLessons = useMemo(
+    () => lessons.filter((lesson) => !selectedCourse || lesson.course === selectedCourse),
+    [lessons, selectedCourse]
+  );
+  const courseVocab = useMemo(
+    () =>
+      !selectedCourse
+        ? vocab
+        : vocab.filter((item) => visibleLessons.some((lesson) => lesson.id === item.lesson_id)),
+    [selectedCourse, visibleLessons, vocab]
+  );
 
   useEffect(() => {
     if (!user || !supabaseConfigured()) return;
@@ -63,9 +82,27 @@ export default function DictionaryPage() {
   }, [user, mode]);
 
   const filtered = useMemo(() => {
-    if (activeLesson === "all") return vocab;
-    return vocab.filter((item) => item.lesson_id === activeLesson);
-  }, [activeLesson, vocab]);
+    const lessonFiltered = activeLesson === "all"
+      ? courseVocab
+      : courseVocab.filter((item) => item.lesson_id === activeLesson);
+
+    const query = normalizeSearchText(searchTerm);
+    const searched = query
+      ? lessonFiltered.filter((item) => matchesSearch(item, query))
+      : lessonFiltered;
+
+    return [...searched].sort((a, b) => {
+      const aWord = (a.item_type ?? "").trim().toLowerCase() === "word";
+      const bWord = (b.item_type ?? "").trim().toLowerCase() === "word";
+      if (aWord !== bWord) return aWord ? -1 : 1;
+      return a.english_text.localeCompare(b.english_text);
+    });
+  }, [activeLesson, courseVocab, searchTerm]);
+
+  const lessonById = useMemo(
+    () => Object.fromEntries(lessons.map((lesson) => [lesson.id, lesson])),
+    [lessons]
+  );
 
   function isMastered(vocabId: string) {
     if (user) return dbProgressMap[vocabId]?.mastered ?? false;
@@ -80,6 +117,30 @@ export default function DictionaryPage() {
     void audio.play();
   }
 
+  function matchesSearch(item: VocabularyItem, query: string) {
+    const candidates = [
+      item.english_text,
+      item.spanish_text,
+      item.portuguese_text,
+      item.english_sentence,
+      item.spanish_transliteration,
+      item.portuguese_transliteration,
+      item.ipa,
+      item.part_of_speech,
+      item.definition,
+    ];
+
+    return candidates.some((value) => normalizeSearchText(value).includes(query));
+  }
+
+  function normalizeSearchText(value: string | null | undefined) {
+    return (value ?? "")
+      .toLocaleLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .trim();
+  }
+
   return (
     <AppShell title={copy.dictionary}>
       <Card>
@@ -90,7 +151,7 @@ export default function DictionaryPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{copy.allLessons}</SelectItem>
-              {lessons.map((lesson) => (
+              {visibleLessons.map((lesson) => (
                 <SelectItem key={lesson.id} value={lesson.id}>
                   {lessonLabel(lesson, language)}
                 </SelectItem>
@@ -109,6 +170,13 @@ export default function DictionaryPage() {
               <SelectItem value="text-translation">{copy.modeTextTranslation}</SelectItem>
             </SelectContent>
           </Select>
+
+          <Input
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder={copy.dictionarySearchPlaceholder}
+            aria-label={copy.dictionarySearchPlaceholder}
+          />
         </CardContent>
       </Card>
 
@@ -117,6 +185,7 @@ export default function DictionaryPage() {
           <Accordion type="single" collapsible className="w-full">
             {filtered.map((item) => {
               const mastered = isMastered(item.id);
+              const lesson = lessonById[item.lesson_id];
               return (
                 <AccordionItem key={item.id} value={item.id}>
                   <AccordionTrigger className="px-3">
@@ -130,6 +199,11 @@ export default function DictionaryPage() {
                       <Badge variant={mastered ? "default" : "secondary"}>
                         {mastered ? copy.mastered : copy.needsWork}
                       </Badge>
+                      {lesson ? (
+                        <Badge variant="secondary">
+                          {lessonLabel(lesson, language)}
+                        </Badge>
+                      ) : null}
                     </div>
 
                     {item.image_url ? (
@@ -173,6 +247,9 @@ export default function DictionaryPage() {
               );
             })}
           </Accordion>
+          {filtered.length === 0 ? (
+            <p className="px-3 py-6 text-center text-base text-muted-foreground">{copy.dictionaryNoResults}</p>
+          ) : null}
         </CardContent>
       </Card>
     </AppShell>

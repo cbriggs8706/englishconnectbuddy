@@ -6,6 +6,7 @@ create table if not exists public.profiles (
   display_name text,
   real_name text,
   nickname text,
+  selected_course text not null default 'EC1',
   native_language text check (native_language in ('en', 'es', 'pt')),
   is_admin boolean not null default false,
   created_at timestamptz not null default now()
@@ -13,9 +14,14 @@ create table if not exists public.profiles (
 
 alter table public.profiles add column if not exists real_name text;
 alter table public.profiles add column if not exists nickname text;
+alter table public.profiles add column if not exists selected_course text;
+update public.profiles set selected_course = 'EC1' where selected_course is null or trim(selected_course) = '';
+alter table public.profiles alter column selected_course set default 'EC1';
+alter table public.profiles alter column selected_course set not null;
 
 create table if not exists public.lessons (
   id uuid primary key default gen_random_uuid(),
+  course text not null default 'EC1',
   level integer not null default 1,
   unit integer not null default 1,
   lesson_number integer not null default 1,
@@ -30,16 +36,21 @@ create table if not exists public.lessons (
   created_at timestamptz not null default now()
 );
 
+alter table public.lessons add column if not exists course text;
 alter table public.lessons add column if not exists level integer not null default 1;
 alter table public.lessons add column if not exists unit integer not null default 1;
 alter table public.lessons add column if not exists lesson_number integer not null default 1;
 alter table public.lessons add column if not exists sequence_number integer not null default 1;
+update public.lessons
+set course = coalesce(nullif(trim(course), ''), 'EC' || level::text);
+alter table public.lessons alter column course set default 'EC1';
+alter table public.lessons alter column course set not null;
 
 with ordered as (
   select
     id,
     row_number() over (
-      partition by level
+      partition by course
       order by unit asc, lesson_number asc, created_at asc
     ) as seq
   from public.lessons
@@ -49,10 +60,12 @@ set sequence_number = ordered.seq
 from ordered
 where l.id = ordered.id;
 
-create unique index if not exists lessons_level_unit_lesson_number_idx
-on public.lessons(level, unit, lesson_number);
-create unique index if not exists lessons_level_sequence_number_idx
-on public.lessons(level, sequence_number);
+drop index if exists lessons_level_unit_lesson_number_idx;
+drop index if exists lessons_level_sequence_number_idx;
+create unique index if not exists lessons_course_unit_lesson_number_idx
+on public.lessons(course, unit, lesson_number);
+create unique index if not exists lessons_course_sequence_number_idx
+on public.lessons(course, sequence_number);
 
 create table if not exists public.vocabulary (
   id uuid primary key default gen_random_uuid(),
@@ -165,8 +178,11 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id)
-  values (new.id)
+  insert into public.profiles (id, selected_course)
+  values (
+    new.id,
+    coalesce(nullif(trim(new.raw_user_meta_data->>'course'), ''), 'EC1')
+  )
   on conflict (id) do nothing;
   return new;
 end;

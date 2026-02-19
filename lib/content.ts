@@ -9,7 +9,8 @@ export function lessonTitle(lesson: Lesson, language: Language) {
 export function lessonLabel(lesson: Lesson, language: Language) {
   const title = lessonTitle(lesson, language);
   const sequence = lesson.sequence_number ?? lesson.lesson_number;
-  return `EC${lesson.level}.${sequence} ${title}`;
+  const course = lesson.course?.trim() || `EC${lesson.level}`;
+  return `${course}.${sequence} ${title}`;
 }
 
 export function lessonDescription(lesson: Lesson, language: Language) {

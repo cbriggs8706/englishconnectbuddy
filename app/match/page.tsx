@@ -75,7 +75,8 @@ export default function MatchingPage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const selectedCourse = profile?.selected_course ?? null;
 
   const [selectedLesson, setSelectedLesson] = useState<string>("");
   const [mode, setMode] = useState<MatchingMode>("image-text");
@@ -87,8 +88,21 @@ export default function MatchingPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState<ConfettiPiece[]>([]);
   const [roundNonce, setRoundNonce] = useState(0);
-  const { defaultLessonId } = useCourseProgress({ lessons, vocab, user });
+  const { defaultLessonId } = useCourseProgress({
+    lessons,
+    vocab,
+    user,
+    selectedCourse,
+  });
   const activeLesson = selectedLesson || defaultLessonId || "all";
+  const visibleLessons = useMemo(
+    () => lessons.filter((lesson) => !selectedCourse || lesson.course === selectedCourse),
+    [lessons, selectedCourse]
+  );
+  const visibleLessonIds = useMemo(
+    () => new Set(visibleLessons.map((lesson) => lesson.id)),
+    [visibleLessons]
+  );
 
   const modeOptions = [
     { value: "audio-text", label: `${copy.audio} -> ${copy.englishWord}` },
@@ -107,9 +121,12 @@ export default function MatchingPage() {
   const promptIsWordBank = promptKind === "text";
 
   const lessonFilteredVocab = useMemo(() => {
-    if (activeLesson === "all") return vocab;
-    return vocab.filter((item) => item.lesson_id === activeLesson);
-  }, [vocab, activeLesson]);
+    const courseVocab = !selectedCourse
+      ? vocab
+      : vocab.filter((item) => visibleLessonIds.has(item.lesson_id));
+    if (activeLesson === "all") return courseVocab;
+    return courseVocab.filter((item) => item.lesson_id === activeLesson);
+  }, [activeLesson, selectedCourse, visibleLessonIds, vocab]);
 
   const pairs = useMemo<Pair[]>(() => {
     const filtered = lessonFilteredVocab.filter((item) => {
@@ -344,7 +361,7 @@ export default function MatchingPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{copy.allLessons}</SelectItem>
-              {lessons.map((lesson) => (
+              {visibleLessons.map((lesson) => (
                 <SelectItem key={lesson.id} value={lesson.id}>
                   {lessonLabel(lesson, language)}
                 </SelectItem>

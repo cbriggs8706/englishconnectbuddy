@@ -4,7 +4,8 @@
 begin;
 
 delete from public.lessons
-where level in (1, 2);
+where course in ('EC1', 'EC2')
+   or level in (1, 2);
 
 with seed(level, seq, title_en, title_es, title_pt) as (
   values
@@ -60,6 +61,7 @@ with seed(level, seq, title_en, title_es, title_pt) as (
     (2, 25, 'Review', 'Repaso', 'Revisão')
 ), mapped as (
   select
+    'EC' || level::text as course,
     level,
     seq,
     title_en,
@@ -84,6 +86,7 @@ with seed(level, seq, title_en, title_es, title_pt) as (
   from seed
 )
 insert into public.lessons (
+  course,
   level,
   unit,
   lesson_number,
@@ -97,6 +100,7 @@ insert into public.lessons (
   description_pt
 )
 select
+  course,
   level,
   unit,
   lesson_number,

@@ -11,6 +11,8 @@ type Dictionary = {
   tagline: string;
   flashcards: string;
   alphabet: string;
+  numbers: string;
+  hearing: string;
   matching: string;
   unscramble: string;
   profile: string;
@@ -49,6 +51,8 @@ type Dictionary = {
   progressActive: string;
   homeFlashcardsDesc: string;
   homeAlphabetDesc: string;
+  homeNumbersDesc: string;
+  homeHearingDesc: string;
   homeMatchingDesc: string;
   homeUnscrambleDesc: string;
   homePatternsDesc: string;
@@ -111,6 +115,8 @@ type Dictionary = {
   englishPattern: string;
   selectedLanguagePattern: string;
   allLessons: string;
+  dictionarySearchPlaceholder: string;
+  dictionaryNoResults: string;
   cardMode: string;
   modeImageAudio: string;
   modeImageText: string;
@@ -144,10 +150,21 @@ type Dictionary = {
   inProgressStatus: string;
   notStartedStatus: string;
   alphabetSubtitle: string;
+  numbersSubtitle: string;
+  hearingSubtitle: string;
+  hearingSpeedLabel: string;
+  hearingPlay: string;
+  hearingPlaying: string;
+  hearingNextWord: string;
+  hearingTip: string;
   alphabetStudyIntro: string;
+  numbersStudyIntro: string;
   startLetterQuiz: string;
+  startNumberQuiz: string;
   letterQuizTitle: string;
+  numberQuizTitle: string;
   chooseSecondsPerLetter: string;
+  chooseSecondsPerNumber: string;
   beginQuiz: string;
   studyMore: string;
   ready: string;
@@ -169,6 +186,10 @@ type Dictionary = {
   quizAgain: string;
   tryAgain: string;
   playLetterAriaTemplate: string;
+  playNumberAriaTemplate: string;
+  missedNumbersSummaryTemplate: string;
+  passedWithTwoOrFewerNumbers: string;
+  passNumberRequirement: string;
   exitQuiz: string;
 };
 
@@ -178,6 +199,8 @@ export const dictionary: Record<Language, Dictionary> = {
     tagline: "Learn English with quick games and lessons",
     flashcards: "Flashcards",
     alphabet: "Alphabet",
+    numbers: "Numbers",
+    hearing: "Hearing",
     matching: "Matching",
     unscramble: "Unscramble",
     profile: "Profile",
@@ -216,6 +239,8 @@ export const dictionary: Record<Language, Dictionary> = {
     progressActive: "Progress saving is active.",
     homeFlashcardsDesc: "Learn key words by revealing English meanings.",
     homeAlphabetDesc: "Study uppercase and lowercase letters with audio.",
+    homeNumbersDesc: "Practice number sounds from 1 to 9000 with audio.",
+    homeHearingDesc: "Listen to words spelled letter by letter at your pace.",
     homeMatchingDesc: "Match your language to English words quickly.",
     homeUnscrambleDesc: "Build correct English sentence order.",
     homePatternsDesc: "Review lesson sentence patterns side by side.",
@@ -278,6 +303,8 @@ export const dictionary: Record<Language, Dictionary> = {
     englishPattern: "English Pattern",
     selectedLanguagePattern: "Selected Language Pattern",
     allLessons: "All Lessons",
+    dictionarySearchPlaceholder: "Search any word in any language",
+    dictionaryNoResults: "No matching words found.",
     cardMode: "Card Mode",
     modeImageAudio: "Picture front / Audio back",
     modeImageText: "Picture front / Text back",
@@ -311,10 +338,21 @@ export const dictionary: Record<Language, Dictionary> = {
     inProgressStatus: "In progress",
     notStartedStatus: "Not started",
     alphabetSubtitle: "Study letters and sounds",
+    numbersSubtitle: "Study numbers and sounds",
+    hearingSubtitle: "Hear words spelled out one letter at a time",
+    hearingSpeedLabel: "Spelling speed",
+    hearingPlay: "Play Spelling",
+    hearingPlaying: "Playing...",
+    hearingNextWord: "Next Word",
+    hearingTip: "Tip: Adjust the slider, listen, and repeat until you can catch every letter.",
     alphabetStudyIntro: "Learn uppercase and lowercase letters with audio.",
+    numbersStudyIntro: "Practice number pronunciation with audio.",
     startLetterQuiz: "Start Letter Quiz",
+    startNumberQuiz: "Start Number Quiz",
     letterQuizTitle: "Letter Quiz",
+    numberQuizTitle: "Number Quiz",
     chooseSecondsPerLetter: "Choose how many seconds you want to answer each letter.",
+    chooseSecondsPerNumber: "Choose how many seconds you want to answer each number.",
     beginQuiz: "Begin Quiz",
     studyMore: "Study More",
     ready: "Ready",
@@ -336,6 +374,10 @@ export const dictionary: Record<Language, Dictionary> = {
     quizAgain: "Quiz Again",
     tryAgain: "Try Again",
     playLetterAriaTemplate: "Play letter {letter}",
+    playNumberAriaTemplate: "Play number {number}",
+    missedNumbersSummaryTemplate: "Missed {count} of {total} numbers.",
+    passedWithTwoOrFewerNumbers: "You passed with 2 or fewer misses.",
+    passNumberRequirement: "Pass requirement: miss no more than 2 numbers.",
     exitQuiz: "Exit quiz",
   },
   es: {
@@ -343,6 +385,8 @@ export const dictionary: Record<Language, Dictionary> = {
     tagline: "Aprende inglés con juegos y lecciones rápidas",
     flashcards: "Tarjetas",
     alphabet: "Alfabeto",
+    numbers: "Números",
+    hearing: "Escuchar",
     matching: "Relacionar",
     unscramble: "Ordenar",
     profile: "Perfil",
@@ -381,6 +425,8 @@ export const dictionary: Record<Language, Dictionary> = {
     progressActive: "El guardado de progreso está activo.",
     homeFlashcardsDesc: "Aprende palabras clave revelando su significado en inglés.",
     homeAlphabetDesc: "Estudia letras mayúsculas y minúsculas con audio.",
+    homeNumbersDesc: "Practica los sonidos de números del 1 al 9000 con audio.",
+    homeHearingDesc: "Escucha palabras deletreadas letra por letra a tu ritmo.",
     homeMatchingDesc: "Relaciona rápidamente tu idioma con palabras en inglés.",
     homeUnscrambleDesc: "Construye el orden correcto de las oraciones en inglés.",
     homePatternsDesc: "Revisa patrones de la lección en paralelo.",
@@ -443,6 +489,8 @@ export const dictionary: Record<Language, Dictionary> = {
     englishPattern: "Patrón en inglés",
     selectedLanguagePattern: "Patrón del idioma seleccionado",
     allLessons: "Todas las lecciones",
+    dictionarySearchPlaceholder: "Busca cualquier palabra en cualquier idioma",
+    dictionaryNoResults: "No se encontraron palabras.",
     cardMode: "Modo de tarjeta",
     modeImageAudio: "Imagen frente / Audio atrás",
     modeImageText: "Imagen frente / Texto atrás",
@@ -476,10 +524,21 @@ export const dictionary: Record<Language, Dictionary> = {
     inProgressStatus: "En progreso",
     notStartedStatus: "Sin empezar",
     alphabetSubtitle: "Estudia letras y sonidos",
+    numbersSubtitle: "Estudia números y sonidos",
+    hearingSubtitle: "Escucha palabras deletreadas una letra a la vez",
+    hearingSpeedLabel: "Velocidad de deletreo",
+    hearingPlay: "Reproducir deletreo",
+    hearingPlaying: "Reproduciendo...",
+    hearingNextWord: "Siguiente palabra",
+    hearingTip: "Consejo: Ajusta el control, escucha y repite hasta captar cada letra.",
     alphabetStudyIntro: "Aprende letras mayúsculas y minúsculas con audio.",
+    numbersStudyIntro: "Practica la pronunciación de números con audio.",
     startLetterQuiz: "Comenzar quiz de letras",
+    startNumberQuiz: "Comenzar quiz de números",
     letterQuizTitle: "Quiz de letras",
+    numberQuizTitle: "Quiz de números",
     chooseSecondsPerLetter: "Elige cuántos segundos quieres para responder cada letra.",
+    chooseSecondsPerNumber: "Elige cuántos segundos quieres para responder cada número.",
     beginQuiz: "Comenzar quiz",
     studyMore: "Estudiar más",
     ready: "Listos",
@@ -501,6 +560,10 @@ export const dictionary: Record<Language, Dictionary> = {
     quizAgain: "Quiz otra vez",
     tryAgain: "Intentar de nuevo",
     playLetterAriaTemplate: "Reproducir letra {letter}",
+    playNumberAriaTemplate: "Reproducir número {number}",
+    missedNumbersSummaryTemplate: "Fallaste {count} de {total} números.",
+    passedWithTwoOrFewerNumbers: "Aprobaste con 2 o menos fallos.",
+    passNumberRequirement: "Para aprobar: no fallar más de 2 números.",
     exitQuiz: "Salir del quiz",
   },
   pt: {
@@ -508,6 +571,8 @@ export const dictionary: Record<Language, Dictionary> = {
     tagline: "Aprenda inglês com jogos e lições rápidas",
     flashcards: "Cartões",
     alphabet: "Alfabeto",
+    numbers: "Números",
+    hearing: "Escuta",
     matching: "Combinar",
     unscramble: "Ordenar",
     profile: "Perfil",
@@ -546,6 +611,8 @@ export const dictionary: Record<Language, Dictionary> = {
     progressActive: "Salvar progresso está ativo.",
     homeFlashcardsDesc: "Aprenda palavras-chave revelando significados em inglês.",
     homeAlphabetDesc: "Estude letras maiúsculas e minúsculas com áudio.",
+    homeNumbersDesc: "Pratique sons de números de 1 a 9000 com áudio.",
+    homeHearingDesc: "Ouça palavras soletradas letra por letra no seu ritmo.",
     homeMatchingDesc: "Combine rapidamente seu idioma com palavras em inglês.",
     homeUnscrambleDesc: "Monte a ordem correta das frases em inglês.",
     homePatternsDesc: "Revise padrões da lição lado a lado.",
@@ -608,6 +675,8 @@ export const dictionary: Record<Language, Dictionary> = {
     englishPattern: "Padrão em inglês",
     selectedLanguagePattern: "Padrão do idioma selecionado",
     allLessons: "Todas as lições",
+    dictionarySearchPlaceholder: "Pesquise qualquer palavra em qualquer idioma",
+    dictionaryNoResults: "Nenhuma palavra encontrada.",
     cardMode: "Modo do cartão",
     modeImageAudio: "Imagem frente / Áudio verso",
     modeImageText: "Imagem frente / Texto verso",
@@ -641,10 +710,21 @@ export const dictionary: Record<Language, Dictionary> = {
     inProgressStatus: "Em progresso",
     notStartedStatus: "Não iniciada",
     alphabetSubtitle: "Estude letras e sons",
+    numbersSubtitle: "Estude números e sons",
+    hearingSubtitle: "Ouça palavras soletradas uma letra por vez",
+    hearingSpeedLabel: "Velocidade da soletração",
+    hearingPlay: "Tocar soletração",
+    hearingPlaying: "Tocando...",
+    hearingNextWord: "Próxima palavra",
+    hearingTip: "Dica: Ajuste o controle, escute e repita até captar cada letra.",
     alphabetStudyIntro: "Aprenda letras maiúsculas e minúsculas com áudio.",
+    numbersStudyIntro: "Pratique a pronúncia dos números com áudio.",
     startLetterQuiz: "Iniciar quiz de letras",
+    startNumberQuiz: "Iniciar quiz de números",
     letterQuizTitle: "Quiz de letras",
+    numberQuizTitle: "Quiz de números",
     chooseSecondsPerLetter: "Escolha quantos segundos você quer para responder cada letra.",
+    chooseSecondsPerNumber: "Escolha quantos segundos você quer para responder cada número.",
     beginQuiz: "Iniciar quiz",
     studyMore: "Estudar mais",
     ready: "Preparar",
@@ -666,6 +746,10 @@ export const dictionary: Record<Language, Dictionary> = {
     quizAgain: "Quiz novamente",
     tryAgain: "Tentar novamente",
     playLetterAriaTemplate: "Tocar letra {letter}",
+    playNumberAriaTemplate: "Tocar número {number}",
+    missedNumbersSummaryTemplate: "Errou {count} de {total} números.",
+    passedWithTwoOrFewerNumbers: "Você passou com 2 ou menos erros.",
+    passNumberRequirement: "Regra para passar: errar no máximo 2 números.",
     exitQuiz: "Sair do quiz",
   },
 };

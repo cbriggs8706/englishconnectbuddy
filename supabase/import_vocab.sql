@@ -1,17 +1,18 @@
 -- Import vocab from spreadsheet format:
--- id, lesson, type, eng, spa, por, spaTransliteration, porTransliteration, ipa, partOfSpeech, definition, image, engAudio
+-- id, course, lesson, type, eng, spa, por, spaTransliteration, porTransliteration, ipa, partOfSpeech, definition, image, engAudio
 --
 -- Steps:
 -- 1) Create a CSV from your spreadsheet with these exact headers.
 -- 2) In Supabase Table Editor, create/load into: public.vocab_import_staging
 --    or use SQL below and paste rows as VALUES.
--- 3) Set target_level below (1 = EC1, 2 = EC2).
+-- 3) Set target_course below (for example EC1 or EC2).
 -- 4) Run the INSERT..SELECT block.
 
 begin;
 
 create table if not exists public.vocab_import_staging (
   id integer,
+  course text,
   lesson integer,
   type text,
   eng text,
@@ -25,20 +26,20 @@ create table if not exists public.vocab_import_staging (
   image text,
   "engAudio" text
 );
+alter table public.vocab_import_staging add column if not exists course text;
 
 -- Optional: clear staging before loading fresh sheet
 -- truncate table public.vocab_import_staging;
 
 -- Optional paste example rows directly (remove when using CSV upload):
 -- insert into public.vocab_import_staging
--- (id, lesson, type, eng, spa, por, "spaTransliteration", "porTransliteration", ipa, "partOfSpeech", definition, image, "engAudio")
+-- (id, course, lesson, type, eng, spa, por, "spaTransliteration", "porTransliteration", ipa, "partOfSpeech", definition, image, "engAudio")
 -- values
--- (1, 1, 'word', 'I', 'yo', 'eu', 'ái', 'ái', '[aɪ]', 'pronoun', 'the speaker', '/english/i.webp', '/english/i.mp3');
+-- (1, 'EC1', 1, 'word', 'I', 'yo', 'eu', 'ái', 'ái', '[aɪ]', 'pronoun', 'the speaker', '/english/i.webp', '/english/i.mp3');
 
--- Choose target EC level for this import.
--- Use 1 for EC1 sheets, 2 for EC2 sheets.
+-- Choose default course used when the CSV row has an empty course value.
 with config as (
-  select 1::integer as target_level
+  select 'EC1'::text as target_course
 )
 insert into public.vocabulary (
   lesson_id,
@@ -76,7 +77,7 @@ select
 from public.vocab_import_staging s
 join config c on true
 join public.lessons l
-  on l.level = c.target_level
+  on l.course = coalesce(nullif(trim(s.course), ''), c.target_course)
  and l.sequence_number = s.lesson
 where nullif(trim(s.eng), '') is not null
   and nullif(trim(s.spa), '') is not null
@@ -85,8 +86,8 @@ where nullif(trim(s.eng), '') is not null
 commit;
 
 -- Validation query:
--- select l.level, l.sequence_number, count(v.*)
+-- select l.course, l.sequence_number, count(v.*)
 -- from public.vocabulary v
 -- join public.lessons l on l.id = v.lesson_id
--- group by l.level, l.sequence_number
--- order by l.level, l.sequence_number;
+-- group by l.course, l.sequence_number
+-- order by l.course, l.sequence_number;
