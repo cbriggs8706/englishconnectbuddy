@@ -172,3 +172,12 @@ export type VolunteerSignup = {
   volunteer_name: string;
   created_at: string;
 };
+
+export type LessonConfidencePoll = {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  confidence: number;
+  created_at: string;
+  updated_at: string;
+};

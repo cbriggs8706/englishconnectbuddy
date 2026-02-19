@@ -65,6 +65,32 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           </Link>
+          <Link href="/admin/confidence-poll">
+            <Card>
+              <CardHeader>
+                <CardTitle>Confidence Poll Report</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                View each student&apos;s 0-5 lesson confidence poll and course progress.
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/admin/priority-poll">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {language === "es" ? "Reporte de encuesta de prioridades" : language === "pt" ? "Relatorio da enquete de prioridades" : "Priority Poll Report"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                {language === "es"
+                  ? "Ver las prioridades de aprendizaje ordenadas de cada estudiante."
+                  : language === "pt"
+                    ? "Ver as prioridades de aprendizado ordenadas de cada aluno."
+                    : "View each student's ranked learning priorities."}
+              </CardContent>
+            </Card>
+          </Link>
           <Link href="/admin/home-qr">
             <Card>
               <CardHeader>

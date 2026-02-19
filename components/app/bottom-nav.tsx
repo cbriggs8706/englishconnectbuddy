@@ -3,7 +3,20 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
-import { AudioLines, BookOpen, ChartNoAxesColumn, Hash, Home, Layers, Menu, Shuffle, Trophy, UserRound, Users } from "lucide-react";
+import {
+  AudioLines,
+  BookOpen,
+  ChartNoAxesColumn,
+  ClipboardList,
+  Hash,
+  Home,
+  Layers,
+  Menu,
+  Shuffle,
+  Trophy,
+  UserRound,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -32,11 +45,13 @@ export function BottomNav() {
       { href: "/patterns", label: copy.patterns, icon: BookOpen },
       { href: "/quiz", label: copy.liveQuiz, icon: Trophy },
       { href: "/dictionary", label: copy.dictionary, icon: BookOpen },
+      { href: "/confidence-poll", label: "Confidence Poll", icon: ClipboardList },
+      { href: "/priority-poll", label: language === "es" ? "Encuesta de prioridades" : language === "pt" ? "Enquete de prioridades" : "Priority Poll", icon: ClipboardList },
       { href: "/progress", label: copy.progress, icon: ChartNoAxesColumn },
       { href: "/volunteer", label: copy.volunteer, icon: Users },
       { href: "/profile", label: copy.profile, icon: UserRound },
     ],
-    [copy]
+    [copy, language]
   );
 
   const moreActive =

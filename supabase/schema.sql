@@ -171,6 +171,33 @@ create table if not exists public.user_flashcard_progress (
   unique (user_id, vocab_id, mode)
 );
 
+create table if not exists public.lesson_confidence_polls (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  lesson_id uuid not null references public.lessons(id) on delete cascade,
+  confidence integer not null check (confidence between 0 and 5),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, lesson_id)
+);
+
+alter table public.lesson_confidence_polls add column if not exists updated_at timestamptz not null default now();
+create index if not exists lesson_confidence_polls_user_id_idx on public.lesson_confidence_polls (user_id);
+create index if not exists lesson_confidence_polls_lesson_id_idx on public.lesson_confidence_polls (lesson_id);
+
+create table if not exists public.priority_section_polls (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  section_key text not null,
+  rank_order integer not null check (rank_order >= 1),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, section_key)
+);
+
+create index if not exists priority_section_polls_user_id_idx on public.priority_section_polls (user_id);
+create index if not exists priority_section_polls_rank_order_idx on public.priority_section_polls (rank_order);
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -211,6 +238,8 @@ alter table public.lesson_patterns enable row level security;
 alter table public.user_progress enable row level security;
 alter table public.game_scores enable row level security;
 alter table public.user_flashcard_progress enable row level security;
+alter table public.lesson_confidence_polls enable row level security;
+alter table public.priority_section_polls enable row level security;
 
 -- Read access for everyone (open content)
 drop policy if exists "lessons readable by all" on public.lessons;
@@ -238,6 +267,11 @@ using (true);
 create policy "profiles read own"
 on public.profiles for select
 using (auth.uid() = id);
+
+drop policy if exists "profiles admin read" on public.profiles;
+create policy "profiles admin read"
+on public.profiles for select
+using (public.is_admin(auth.uid()));
 
 drop policy if exists "profiles update own" on public.profiles;
 create policy "profiles update own"
@@ -278,6 +312,11 @@ create policy "flashcards own read"
 on public.user_flashcard_progress for select
 using (auth.uid() = user_id);
 
+drop policy if exists "flashcards admin read" on public.user_flashcard_progress;
+create policy "flashcards admin read"
+on public.user_flashcard_progress for select
+using (public.is_admin(auth.uid()));
+
 drop policy if exists "flashcards own insert" on public.user_flashcard_progress;
 create policy "flashcards own insert"
 on public.user_flashcard_progress for insert
@@ -288,6 +327,48 @@ create policy "flashcards own update"
 on public.user_flashcard_progress for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+drop policy if exists "lesson confidence own read" on public.lesson_confidence_polls;
+create policy "lesson confidence own read"
+on public.lesson_confidence_polls for select
+using (auth.uid() = user_id);
+
+drop policy if exists "lesson confidence own insert" on public.lesson_confidence_polls;
+create policy "lesson confidence own insert"
+on public.lesson_confidence_polls for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "lesson confidence own update" on public.lesson_confidence_polls;
+create policy "lesson confidence own update"
+on public.lesson_confidence_polls for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "lesson confidence admin read" on public.lesson_confidence_polls;
+create policy "lesson confidence admin read"
+on public.lesson_confidence_polls for select
+using (public.is_admin(auth.uid()));
+
+drop policy if exists "priority poll own read" on public.priority_section_polls;
+create policy "priority poll own read"
+on public.priority_section_polls for select
+using (auth.uid() = user_id);
+
+drop policy if exists "priority poll own insert" on public.priority_section_polls;
+create policy "priority poll own insert"
+on public.priority_section_polls for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "priority poll own update" on public.priority_section_polls;
+create policy "priority poll own update"
+on public.priority_section_polls for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "priority poll admin read" on public.priority_section_polls;
+create policy "priority poll admin read"
+on public.priority_section_polls for select
+using (public.is_admin(auth.uid()));
 
 -- Admin write access
  drop policy if exists "lessons admin write" on public.lessons;
