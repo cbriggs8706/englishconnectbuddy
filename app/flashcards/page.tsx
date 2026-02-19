@@ -30,6 +30,8 @@ import { FlashcardMode, FlashcardProgress } from "@/lib/types";
 import { Headphones } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+type StudyStage = "review" | "learn";
+
 export default function FlashcardsPage() {
   const { language } = useLanguage();
   const copy = t(language);
@@ -39,6 +41,7 @@ export default function FlashcardsPage() {
 
   const [selectedLesson, setSelectedLesson] = useState<string>("");
   const [mode, setMode] = useState<FlashcardMode>("image-audio");
+  const [studyStage, setStudyStage] = useState<StudyStage>("review");
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [failedImageSrcs, setFailedImageSrcs] = useState<Record<string, true>>({});
@@ -60,10 +63,15 @@ export default function FlashcardsPage() {
     () => new Set(visibleLessons.map((lesson) => lesson.id)),
     [visibleLessons]
   );
-  const courseVocab = useMemo(
-    () => (!selectedCourse ? vocab : vocab.filter((item) => visibleLessonIds.has(item.lesson_id))),
-    [selectedCourse, visibleLessonIds, vocab]
-  );
+  const courseVocab = useMemo(() => {
+    const inCourse = !selectedCourse
+      ? vocab
+      : vocab.filter((item) => visibleLessonIds.has(item.lesson_id));
+
+    return inCourse.filter(
+      (item) => (item.item_type ?? "").trim().toLowerCase() === "word"
+    );
+  }, [selectedCourse, visibleLessonIds, vocab]);
 
   useEffect(() => {
     if (!user || !supabaseConfigured()) return;
@@ -74,8 +82,7 @@ export default function FlashcardsPage() {
       const { data, error } = await supabase
         .from("user_flashcard_progress")
         .select("*")
-        .eq("user_id", userId)
-        .eq("mode", mode);
+        .eq("user_id", userId);
 
       if (!error && data) {
         const map: Record<string, FlashcardProgress> = {};
@@ -87,19 +94,14 @@ export default function FlashcardsPage() {
     }
 
     void loadDbProgress();
-  }, [user, mode]);
-
-  const filtered = useMemo(() => {
-    if (activeLesson === "all") return courseVocab;
-    return courseVocab.filter((item) => item.lesson_id === activeLesson);
-  }, [courseVocab, activeLesson]);
+  }, [user]);
 
   function getProgress(vocabId: string) {
     if (user) {
       return dbProgressMap[vocabId] ?? null;
     }
 
-    const key = progressKey(vocabId, mode);
+    const key = progressKey(vocabId);
     const guest = guestProgressMap[key];
     if (!guest) return null;
 
@@ -107,7 +109,6 @@ export default function FlashcardsPage() {
       id: key,
       user_id: "guest",
       vocab_id: vocabId,
-      mode,
       streak_count: guest.streakCount,
       review_count: guest.reviewCount,
       mastered: guest.mastered,
@@ -116,32 +117,57 @@ export default function FlashcardsPage() {
     } satisfies FlashcardProgress;
   }
 
-  const orderedDeck = (() => {
+  const decks = useMemo(() => {
     const now = new Date();
 
-    const due = [] as typeof filtered;
-    const fresh = [] as typeof filtered;
-    const later = [] as typeof filtered;
-
-    for (const item of filtered) {
+    const due = courseVocab.filter((item) => {
       const progress = getProgress(item.id);
+      if (!progress || progress.mastered) return false;
+      return new Date(progress.due_at) <= now;
+    });
 
-      if (!progress) {
-        fresh.push(item);
-        continue;
-      }
+    const fresh = courseVocab.filter((item) => !getProgress(item.id));
 
-      if (new Date(progress.due_at) <= now) {
-        due.push(item);
-      } else {
-        later.push(item);
-      }
+    if (activeLesson === "all") {
+      return {
+        due,
+        fresh,
+        freshSelected: fresh,
+        freshSpillover: [] as typeof fresh,
+        learnDeck: fresh,
+      };
     }
 
-    return { due, fresh, later, deck: [...due, ...fresh, ...later] };
-  })();
+    const freshSelected = fresh.filter((item) => item.lesson_id === activeLesson);
+    const freshSpillover = fresh.filter((item) => item.lesson_id !== activeLesson);
 
-  const current = orderedDeck.deck[index];
+    return {
+      due,
+      fresh,
+      freshSelected,
+      freshSpillover,
+      learnDeck: [...freshSelected, ...freshSpillover],
+    };
+  }, [activeLesson, courseVocab, dbProgressMap, guestProgressMap, user]);
+
+  useEffect(() => {
+    if (decks.due.length === 0 && studyStage === "review") {
+      setIndex(0);
+      setFlipped(false);
+    }
+  }, [decks.due.length, studyStage]);
+
+  const activeDeck = studyStage === "review" ? decks.due : decks.learnDeck;
+
+  useEffect(() => {
+    if (index < activeDeck.length) return;
+    setIndex(0);
+    setFlipped(false);
+  }, [activeDeck.length, index]);
+
+  const current = activeDeck[index] ?? null;
+  const currentProgress = current ? getProgress(current.id) : null;
+  const isFirstExposure = Boolean(current && !currentProgress);
 
   function translationForLanguage() {
     if (!current) return "";
@@ -245,29 +271,26 @@ export default function FlashcardsPage() {
         {
           user_id: user.id,
           vocab_id: current.id,
-          mode,
           ...next,
         },
-        { onConflict: "user_id,vocab_id,mode" }
+        { onConflict: "user_id,vocab_id" }
       );
 
       setDbProgressMap((prev) => ({
         ...prev,
         [current.id]: {
-          id: prev[current.id]?.id ?? `${current.id}-${mode}`,
+          id: prev[current.id]?.id ?? `${current.id}`,
           user_id: user.id,
           vocab_id: current.id,
-          mode,
           ...next,
         },
       }));
     } else {
-      const key = progressKey(current.id, mode);
+      const key = progressKey(current.id);
       const updatedGuest = {
         ...guestProgressMap,
         [key]: {
           vocabId: current.id,
-          mode,
           streakCount: next.streak_count,
           reviewCount: next.review_count,
           mastered: next.mastered,
@@ -279,17 +302,14 @@ export default function FlashcardsPage() {
       saveGuestProgress(updatedGuest);
     }
 
-    setIndex((prev) => {
-      if (orderedDeck.deck.length === 0) return 0;
-      return (prev + 1) % orderedDeck.deck.length;
-    });
+    setIndex((prev) => prev + 1);
     setFlipped(false);
   }
 
   function handleNext() {
     setIndex((prev) => {
-      if (orderedDeck.deck.length === 0) return 0;
-      return (prev + 1) % orderedDeck.deck.length;
+      if (activeDeck.length === 0) return 0;
+      return (prev + 1) % activeDeck.length;
     });
     setFlipped(false);
   }
@@ -338,17 +358,58 @@ export default function FlashcardsPage() {
             </SelectContent>
           </Select>
 
-          <div className="flex gap-2 text-xs">
-            <Badge variant="secondary">{copy.dueCount}: {orderedDeck.due.length}</Badge>
-            <Badge variant="secondary">{copy.newCount}: {orderedDeck.fresh.length}</Badge>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <Badge variant="secondary">{copy.dueCount}: {decks.due.length}</Badge>
+            <Badge variant="secondary">{copy.newCount}: {decks.fresh.length}</Badge>
+            <Badge variant="secondary">{studyStage === "review" ? copy.reviewSession : copy.learnSession}</Badge>
           </div>
+
+          {studyStage === "review" && decks.due.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{copy.reviewAcrossLessons}</p>
+              <Button type="button" variant="secondary" className="w-full" onClick={() => {
+                setStudyStage("learn");
+                setIndex(0);
+                setFlipped(false);
+              }}>
+                {copy.skipReview}
+              </Button>
+            </div>
+          ) : null}
+
+          {studyStage === "learn" && decks.due.length > 0 ? (
+            <Button type="button" className="w-full" onClick={() => {
+              setStudyStage("review");
+              setIndex(0);
+              setFlipped(false);
+            }}>
+              {copy.reviewSession}
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
 
-      {!current ? (
+      {studyStage === "review" && decks.due.length === 0 ? (
         <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">{copy.noData}</CardContent>
+          <CardContent className="space-y-3 p-6">
+            <p className="text-base font-semibold">{copy.reviewComplete}</p>
+            <Button type="button" className="w-full" onClick={() => {
+              setStudyStage("learn");
+              setIndex(0);
+              setFlipped(false);
+            }}>
+              {copy.startLearningNew}
+            </Button>
+          </CardContent>
         </Card>
+      ) : null}
+
+      {!current ? (
+        studyStage === "review" && decks.due.length === 0 ? null : (
+          <Card>
+            <CardContent className="p-6 text-sm text-muted-foreground">{copy.noData}</CardContent>
+          </Card>
+        )
       ) : (
         <div className="space-y-3">
           <button
@@ -370,10 +431,16 @@ export default function FlashcardsPage() {
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <Button disabled={!flipped} onClick={() => void applyReview("got-it")}>{copy.ratingGotIt}</Button>
-            <Button disabled={!flipped} variant="secondary" onClick={() => void applyReview("kind-of")}>{copy.ratingKindOf}</Button>
-            <Button disabled={!flipped} variant="outline" onClick={() => void applyReview("keep-in-deck")}>{copy.ratingKeepInDeck}</Button>
+            <Button disabled={!flipped} variant="secondary" onClick={() => void applyReview("weak")}>{copy.ratingKeepInDeck}</Button>
+            <Button disabled={!flipped} variant="secondary" onClick={() => void applyReview("improving")}>{copy.ratingKindOf}</Button>
+            <Button disabled={!flipped} onClick={() => void applyReview("strong")}>{copy.ratingGotIt}</Button>
           </div>
+
+          {isFirstExposure ? (
+            <Button disabled={!flipped} className="w-full" onClick={() => void applyReview("master-now")}>
+              {copy.masterNow}
+            </Button>
+          ) : null}
 
           {!flipped ? <p className="text-center text-xs text-muted-foreground">{copy.flipToRate}</p> : null}
         </div>

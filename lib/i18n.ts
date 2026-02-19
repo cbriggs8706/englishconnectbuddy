@@ -129,7 +129,14 @@ type Dictionary = {
   ratingGotIt: string;
   ratingKindOf: string;
   ratingKeepInDeck: string;
+  masterNow: string;
   flipToRate: string;
+  reviewSession: string;
+  learnSession: string;
+  reviewAcrossLessons: string;
+  skipReview: string;
+  reviewComplete: string;
+  startLearningNew: string;
   dueCount: string;
   newCount: string;
   mastered: string;
@@ -314,10 +321,17 @@ export const dictionary: Record<Language, Dictionary> = {
     showFront: "Show Front",
     flipCard: "Flip Card",
     dictionary: "Dictionary",
-    ratingGotIt: "I've got it",
-    ratingKindOf: "Kind of",
-    ratingKeepInDeck: "Keep in deck",
+    ratingGotIt: "Strong",
+    ratingKindOf: "Improving",
+    ratingKeepInDeck: "Weak",
+    masterNow: "Master now (skip future reviews)",
     flipToRate: "Flip card to rate",
+    reviewSession: "Review due cards",
+    learnSession: "Learn new cards",
+    reviewAcrossLessons: "Due review pulls from all lessons in your course.",
+    skipReview: "Skip review and learn new",
+    reviewComplete: "Great work. Your due review batch is complete.",
+    startLearningNew: "Start learning new words",
     dueCount: "Due",
     newCount: "New",
     mastered: "Mastered",
@@ -500,10 +514,17 @@ export const dictionary: Record<Language, Dictionary> = {
     showFront: "Mostrar frente",
     flipCard: "Voltear tarjeta",
     dictionary: "Diccionario",
-    ratingGotIt: "Ya lo sé",
-    ratingKindOf: "Más o menos",
-    ratingKeepInDeck: "Mantener en mazo",
+    ratingGotIt: "Fuerte",
+    ratingKindOf: "Mejorando",
+    ratingKeepInDeck: "Débil",
+    masterNow: "Dominar ahora (sin revisiones futuras)",
     flipToRate: "Voltea la tarjeta para calificar",
+    reviewSession: "Revisar pendientes",
+    learnSession: "Aprender nuevas",
+    reviewAcrossLessons: "La revisión pendiente toma tarjetas de todas las lecciones del curso.",
+    skipReview: "Saltar revisión y aprender nuevas",
+    reviewComplete: "Excelente. Terminaste tu revisión pendiente.",
+    startLearningNew: "Empezar palabras nuevas",
     dueCount: "Pendientes",
     newCount: "Nuevas",
     mastered: "Dominada",
@@ -686,10 +707,17 @@ export const dictionary: Record<Language, Dictionary> = {
     showFront: "Mostrar frente",
     flipCard: "Virar cartão",
     dictionary: "Dicionário",
-    ratingGotIt: "Já sei",
-    ratingKindOf: "Mais ou menos",
-    ratingKeepInDeck: "Manter no baralho",
+    ratingGotIt: "Forte",
+    ratingKindOf: "Melhorando",
+    ratingKeepInDeck: "Fraco",
+    masterNow: "Dominar agora (sem revisões futuras)",
     flipToRate: "Vire o cartão para avaliar",
+    reviewSession: "Revisar vencidas",
+    learnSession: "Aprender novas",
+    reviewAcrossLessons: "A revisão vencida usa cartões de todas as lições do curso.",
+    skipReview: "Pular revisão e aprender novas",
+    reviewComplete: "Ótimo trabalho. Sua revisão vencida terminou.",
+    startLearningNew: "Começar palavras novas",
     dueCount: "Vencidas",
     newCount: "Novas",
     mastered: "Dominada",

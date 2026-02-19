@@ -95,6 +95,44 @@ alter table public.vocabulary add column if not exists ipa text;
 alter table public.vocabulary add column if not exists part_of_speech text;
 alter table public.vocabulary add column if not exists definition text;
 
+create table if not exists public.words (
+  id uuid primary key default gen_random_uuid(),
+  course text not null,
+  lesson integer not null check (lesson >= 1),
+  eng text not null,
+  spa text not null,
+  por text not null,
+  spa_transliteration text,
+  por_transliteration text,
+  ipa text,
+  part_of_speech text,
+  definition text,
+  image text,
+  eng_audio text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists words_course_lesson_idx on public.words (course, lesson);
+create unique index if not exists words_course_lesson_eng_spa_por_unique_idx
+on public.words (course, lesson, eng, spa, por);
+
+create table if not exists public.phrases (
+  id uuid primary key default gen_random_uuid(),
+  course text not null,
+  lesson integer not null check (lesson >= 1),
+  eng text not null,
+  spa text not null,
+  por text not null,
+  eng_audio text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists phrases_course_lesson_idx on public.phrases (course, lesson);
+create unique index if not exists phrases_course_lesson_eng_spa_por_unique_idx
+on public.phrases (course, lesson, eng, spa, por);
+
 create table if not exists public.sentence_scrambles (
   id uuid primary key default gen_random_uuid(),
   lesson_id uuid not null references public.lessons(id) on delete cascade,
@@ -161,14 +199,13 @@ create table if not exists public.user_flashcard_progress (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   vocab_id uuid not null references public.vocabulary(id) on delete cascade,
-  mode text not null check (mode in ('image-audio', 'image-text', 'audio-text', 'text-translation')),
   streak_count integer not null default 0,
   review_count integer not null default 0,
   mastered boolean not null default false,
   due_at timestamptz not null default now(),
   last_reviewed_at timestamptz,
   created_at timestamptz not null default now(),
-  unique (user_id, vocab_id, mode)
+  unique (user_id, vocab_id)
 );
 
 create table if not exists public.lesson_confidence_polls (
@@ -233,6 +270,8 @@ $$;
 alter table public.profiles enable row level security;
 alter table public.lessons enable row level security;
 alter table public.vocabulary enable row level security;
+alter table public.words enable row level security;
+alter table public.phrases enable row level security;
 alter table public.sentence_scrambles enable row level security;
 alter table public.lesson_patterns enable row level security;
 alter table public.user_progress enable row level security;
@@ -250,6 +289,16 @@ using (true);
 drop policy if exists "vocabulary readable by all" on public.vocabulary;
 create policy "vocabulary readable by all"
 on public.vocabulary for select
+using (true);
+
+drop policy if exists "words readable by all" on public.words;
+create policy "words readable by all"
+on public.words for select
+using (true);
+
+drop policy if exists "phrases readable by all" on public.phrases;
+create policy "phrases readable by all"
+on public.phrases for select
 using (true);
 
 drop policy if exists "scrambles readable by all" on public.sentence_scrambles;
@@ -380,6 +429,18 @@ with check (public.is_admin(auth.uid()));
 drop policy if exists "vocabulary admin write" on public.vocabulary;
 create policy "vocabulary admin write"
 on public.vocabulary for all
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
+drop policy if exists "words admin write" on public.words;
+create policy "words admin write"
+on public.words for all
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
+
+drop policy if exists "phrases admin write" on public.phrases;
+create policy "phrases admin write"
+on public.phrases for all
 using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
 

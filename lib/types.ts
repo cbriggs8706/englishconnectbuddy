@@ -93,7 +93,6 @@ export type FlashcardProgress = {
   id: string;
   user_id: string;
   vocab_id: string;
-  mode: FlashcardMode;
   streak_count: number;
   review_count: number;
   mastered: boolean;

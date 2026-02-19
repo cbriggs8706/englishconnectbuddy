@@ -22,7 +22,7 @@ import { t } from "@/lib/i18n";
 import { resolveVocabMediaUrl } from "@/lib/media";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 import { loadGuestProgress, progressKey } from "@/lib/spaced-repetition";
-import { FlashcardMode, FlashcardProgress, VocabularyItem } from "@/lib/types";
+import { FlashcardProgress, VocabularyItem } from "@/lib/types";
 import { Headphones, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -35,7 +35,6 @@ export default function DictionaryPage() {
 
   const [selectedLesson, setSelectedLesson] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [mode, setMode] = useState<FlashcardMode>("image-audio");
   const [dbProgressMap, setDbProgressMap] = useState<Record<string, FlashcardProgress>>({});
   const [guestProgressMap] = useState(loadGuestProgress());
   const { defaultLessonId } = useCourseProgress({
@@ -49,13 +48,15 @@ export default function DictionaryPage() {
     () => lessons.filter((lesson) => !selectedCourse || lesson.course === selectedCourse),
     [lessons, selectedCourse]
   );
-  const courseVocab = useMemo(
-    () =>
-      !selectedCourse
-        ? vocab
-        : vocab.filter((item) => visibleLessons.some((lesson) => lesson.id === item.lesson_id)),
-    [selectedCourse, visibleLessons, vocab]
-  );
+  const courseVocab = useMemo(() => {
+    const inCourse = !selectedCourse
+      ? vocab
+      : vocab.filter((item) => visibleLessons.some((lesson) => lesson.id === item.lesson_id));
+
+    return inCourse.filter(
+      (item) => (item.item_type ?? "").trim().toLowerCase() === "word"
+    );
+  }, [selectedCourse, visibleLessons, vocab]);
 
   useEffect(() => {
     if (!user || !supabaseConfigured()) return;
@@ -66,8 +67,7 @@ export default function DictionaryPage() {
       const { data, error } = await supabase
         .from("user_flashcard_progress")
         .select("*")
-        .eq("user_id", userId)
-        .eq("mode", mode);
+        .eq("user_id", userId);
 
       if (!error && data) {
         const map: Record<string, FlashcardProgress> = {};
@@ -79,7 +79,7 @@ export default function DictionaryPage() {
     }
 
     void loadDbProgress();
-  }, [user, mode]);
+  }, [user]);
 
   const filtered = useMemo(() => {
     const lessonFiltered = activeLesson === "all"
@@ -106,7 +106,7 @@ export default function DictionaryPage() {
 
   function isMastered(vocabId: string) {
     if (user) return dbProgressMap[vocabId]?.mastered ?? false;
-    const guest = guestProgressMap[progressKey(vocabId, mode)];
+    const guest = guestProgressMap[progressKey(vocabId)];
     return guest?.mastered ?? false;
   }
 
@@ -156,18 +156,6 @@ export default function DictionaryPage() {
                   {lessonLabel(lesson, language)}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={mode} onValueChange={(value) => setMode(value as FlashcardMode)}>
-            <SelectTrigger>
-              <SelectValue placeholder={copy.mode} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="image-audio">{copy.modeImageAudio}</SelectItem>
-              <SelectItem value="image-text">{copy.modeImageText}</SelectItem>
-              <SelectItem value="audio-text">{copy.modeAudioText}</SelectItem>
-              <SelectItem value="text-translation">{copy.modeTextTranslation}</SelectItem>
             </SelectContent>
           </Select>
 

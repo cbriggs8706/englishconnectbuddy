@@ -1,17 +1,16 @@
-import { FlashcardMode, FlashcardProgress } from "@/lib/types";
+import { FlashcardProgress } from "@/lib/types";
 
-export type Rating = "got-it" | "kind-of" | "keep-in-deck";
+export type Rating = "weak" | "improving" | "strong" | "master-now";
 
 export type ProgressLike = Pick<
   FlashcardProgress,
   "streak_count" | "review_count" | "mastered"
 >;
 
-const STORAGE_KEY = "ecb-flashcard-progress";
+const STORAGE_KEY = "ecb-flashcard-progress-v2";
 
 type GuestProgressRecord = {
   vocabId: string;
-  mode: FlashcardMode;
   streakCount: number;
   reviewCount: number;
   mastered: boolean;
@@ -33,16 +32,23 @@ function addDays(date: Date, days: number) {
   return next;
 }
 
-function gotItDueDate(now: Date, nextStreak: number) {
+function addYears(date: Date, years: number) {
+  const next = new Date(date);
+  next.setFullYear(next.getFullYear() + years);
+  return next;
+}
+
+function strongDueDate(now: Date, nextStreak: number) {
   if (nextStreak <= 1) return addDays(now, 3);
   if (nextStreak === 2) return addDays(now, 7);
   if (nextStreak === 3) return addDays(now, 14);
   if (nextStreak === 4) return addDays(now, 30);
-  return addDays(now, 45);
+  if (nextStreak === 5) return addDays(now, 60);
+  return addDays(now, 120);
 }
 
-export function progressKey(vocabId: string, mode: FlashcardMode) {
-  return `${vocabId}::${mode}`;
+export function progressKey(vocabId: string) {
+  return vocabId;
 }
 
 export function applyRating(current: ProgressLike | null, rating: Rating, now = new Date()) {
@@ -51,26 +57,33 @@ export function applyRating(current: ProgressLike | null, rating: Rating, now = 
 
   let streakCount = previousStreak;
   let dueAt = now;
+  let mastered = current?.mastered ?? false;
 
-  if (rating === "got-it") {
+  if (rating === "strong") {
     streakCount = previousStreak + 1;
-    dueAt = gotItDueDate(now, streakCount);
+    dueAt = strongDueDate(now, streakCount);
   }
 
-  if (rating === "kind-of") {
+  if (rating === "improving") {
     streakCount = 0;
     dueAt = addDays(now, 1);
   }
 
-  if (rating === "keep-in-deck") {
+  if (rating === "weak") {
     streakCount = 0;
     dueAt = addMinutes(now, 1);
+  }
+
+  if (rating === "master-now") {
+    mastered = true;
+    streakCount = previousStreak;
+    dueAt = addYears(now, 100);
   }
 
   return {
     streak_count: streakCount,
     review_count: previousReviews + 1,
-    mastered: streakCount >= 5,
+    mastered,
     due_at: dueAt.toISOString(),
     last_reviewed_at: now.toISOString(),
   };
