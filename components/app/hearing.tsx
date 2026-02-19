@@ -8,13 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { t } from "@/lib/i18n";
 import { VocabularyItem } from "@/lib/types";
-import { AudioLines, RefreshCw } from "lucide-react";
+import { AudioLines, Loader2, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const MIN_SPEED = 0.6;
 const MAX_SPEED = 1.6;
 const DEFAULT_SPEED = 1;
 const AUTO_NEXT_DELAY_MS = 5000;
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
 
 type ConfettiPiece = {
   id: string;
@@ -71,6 +72,7 @@ export function Hearing() {
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
   const [current, setCurrent] = useState<VocabularyItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPreparingWordAudio, setIsPreparingWordAudio] = useState(false);
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<"correct" | "incorrect" | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -78,6 +80,9 @@ export function Hearing() {
   const cancelledRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const autoNextTimeoutRef = useRef<number | null>(null);
+  const audioCacheRef = useRef<Map<string, string>>(new Map());
+  const preloadPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
+  const alphabetBackgroundStartedRef = useRef(false);
 
   const courseLessons = useMemo(
     () => lessons.filter((lesson) => !selectedCourse || lesson.course === selectedCourse),
@@ -110,8 +115,76 @@ export function Hearing() {
       if (autoNextTimeoutRef.current) {
         window.clearTimeout(autoNextTimeoutRef.current);
       }
+      for (const src of audioCacheRef.current.values()) {
+        if (src.startsWith("blob:")) {
+          URL.revokeObjectURL(src);
+        }
+      }
     };
   }, []);
+
+  async function preloadLetterAudio(letter: string) {
+    const normalizedLetter = letter.toLowerCase();
+    if (audioCacheRef.current.has(normalizedLetter)) return;
+    const existingPromise = preloadPromisesRef.current.get(normalizedLetter);
+    if (existingPromise) {
+      await existingPromise;
+      return;
+    }
+
+    const preloadPromise = (async () => {
+      const sourceUrl = publicAlphabetUrl(`${normalizedLetter}.mp3`);
+      try {
+        const response = await fetch(sourceUrl, { cache: "force-cache" });
+        if (!response.ok) {
+          audioCacheRef.current.set(normalizedLetter, sourceUrl);
+          return;
+        }
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        audioCacheRef.current.set(normalizedLetter, objectUrl);
+      } catch {
+        audioCacheRef.current.set(normalizedLetter, sourceUrl);
+      }
+    })();
+
+    preloadPromisesRef.current.set(normalizedLetter, preloadPromise);
+    try {
+      await preloadPromise;
+    } finally {
+      preloadPromisesRef.current.delete(normalizedLetter);
+    }
+  }
+
+  useEffect(() => {
+    if (!current) return;
+
+    let cancelled = false;
+    const wordLetters = Array.from(new Set(tokenizeWord(current.english_text)));
+    if (wordLetters.length === 0) return;
+
+    setIsPreparingWordAudio(true);
+
+    void Promise.all(wordLetters.map((letter) => preloadLetterAudio(letter))).finally(() => {
+      if (!cancelled) {
+        setIsPreparingWordAudio(false);
+      }
+    });
+
+    if (!alphabetBackgroundStartedRef.current) {
+      alphabetBackgroundStartedRef.current = true;
+      const remainingLetters = ALPHABET.filter((letter) => !wordLetters.includes(letter));
+      void (async () => {
+        for (const letter of remainingLetters) {
+          await preloadLetterAudio(letter);
+        }
+      })();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [current]);
 
   function playSuccessTrumpet() {
     if (typeof window === "undefined") return;
@@ -152,7 +225,7 @@ export function Hearing() {
   }
 
   async function playSpelling() {
-    if (!current || isPlaying) return;
+    if (!current || isPlaying || isPreparingWordAudio) return;
 
     const letters = tokenizeWord(current.english_text);
     if (letters.length === 0) return;
@@ -164,7 +237,8 @@ export function Hearing() {
       for (const letter of letters) {
         if (cancelledRef.current) break;
 
-        const audio = new Audio(publicAlphabetUrl(`${letter}.mp3`));
+        const audioSrc = audioCacheRef.current.get(letter) ?? publicAlphabetUrl(`${letter}.mp3`);
+        const audio = new Audio(audioSrc);
         audio.playbackRate = speed;
 
         await new Promise<void>((resolve) => {
@@ -272,11 +346,11 @@ export function Hearing() {
             <Button
               type="button"
               onClick={() => void playSpelling()}
-              disabled={!current || isPlaying}
+              disabled={!current || isPlaying || isPreparingWordAudio}
               className="h-14 rounded-2xl bg-white text-lg font-black text-rose-700 hover:bg-rose-50"
             >
-              <AudioLines className="h-5 w-5" />
-              {isPlaying ? copy.hearingPlaying : copy.hearingPlay}
+              {isPreparingWordAudio ? <Loader2 className="h-5 w-5 animate-spin" /> : <AudioLines className="h-5 w-5" />}
+              {isPreparingWordAudio ? "Loading..." : isPlaying ? copy.hearingPlaying : copy.hearingPlay}
             </Button>
             <Button
               type="button"
