@@ -31,6 +31,9 @@ const copy = {
     updating: "Updating...",
     showQr: "Show QR",
     hideQr: "Hide QR",
+    closeSession: "Close session",
+    closing: "Closing...",
+    home: "Back to home",
   },
   es: {
     title: "Presentador del quiz",
@@ -48,6 +51,9 @@ const copy = {
     updating: "Actualizando...",
     showQr: "Mostrar QR",
     hideQr: "Ocultar QR",
+    closeSession: "Cerrar sesion",
+    closing: "Cerrando...",
+    home: "Volver al inicio",
   },
   pt: {
     title: "Apresentador do quiz",
@@ -65,6 +71,9 @@ const copy = {
     updating: "Atualizando...",
     showQr: "Mostrar QR",
     hideQr: "Ocultar QR",
+    closeSession: "Encerrar sessao",
+    closing: "Encerrando...",
+    home: "Voltar ao inicio",
   },
 } as const;
 
@@ -101,6 +110,7 @@ export default function QuizHostSessionPage() {
   const [updatingDuration, setUpdatingDuration] = useState<number | null>(null);
   const [showJoinQrPanel, setShowJoinQrPanel] = useState(false);
   const [autoClosingQuestionId, setAutoClosingQuestionId] = useState<string | null>(null);
+  const [closingSession, setClosingSession] = useState(false);
 
   const currentQuestion =
     session && session.current_question_index >= 0
@@ -284,6 +294,13 @@ export default function QuizHostSessionPage() {
     setUpdatingDuration(null);
   }
 
+  async function closeSession() {
+    if (!session || session.status === "finished" || closingSession) return;
+    setClosingSession(true);
+    await advance("end");
+    setClosingSession(false);
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <AdminGate>
@@ -304,7 +321,14 @@ export default function QuizHostSessionPage() {
               ) : null}
               <Badge variant="outline">{session?.status ?? "waiting"}</Badge>
             </div>
-            <p className="text-sm font-semibold text-muted-foreground">{joinUrl || "/quiz/join"}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-muted-foreground">{joinUrl || "/quiz/join"}</p>
+              {session?.status !== "finished" ? (
+                <Button type="button" variant="destructive" size="sm" disabled={closingSession} onClick={() => void closeSession()}>
+                  {closingSession ? text.closing : text.closeSession}
+                </Button>
+              ) : null}
+            </div>
             {isActive ? (
               <div className="rounded-2xl bg-rose-600 px-6 py-3 text-center text-white">
                 <p className="text-xs uppercase tracking-wide">Timer</p>
@@ -498,6 +522,11 @@ export default function QuizHostSessionPage() {
                     ))}
                     <Link href={`/admin/quiz-results?sessionId=${sessionId}`}>
                       <Button className="w-full">{text.review}</Button>
+                    </Link>
+                    <Link href="/">
+                      <Button className="w-full" variant="secondary">
+                        {text.home}
+                      </Button>
                     </Link>
                   </CardContent>
                 </Card>

@@ -15,6 +15,12 @@ export function getOrCreateGuestToken() {
   return token;
 }
 
+export function normalizeJoinCode(value: string) {
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
 export function quizDisplayName(profile: Profile | null) {
   if (!profile) return null;
   const nickname = profile.nickname?.trim();

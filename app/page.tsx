@@ -13,12 +13,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { t } from "@/lib/i18n";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
   const { user, profile } = useAuth();
+  const router = useRouter();
   const selectedCourse = profile?.selected_course ?? null;
   const { courseStats } = useCourseProgress({ lessons, vocab, user, selectedCourse });
   const activeCourse =
@@ -26,47 +28,54 @@ export default function Home() {
     courseStats.find((course) => course.wordPercent > 0 && course.wordPercent < 100) ??
     courseStats.find((course) => course.wordPercent < 100) ??
     courseStats[courseStats.length - 1];
+  const progressCourse = selectedCourse ?? activeCourse?.course ?? null;
+  const progressLessonCount = progressCourse
+    ? lessons.filter((lesson) => lesson.course === progressCourse).length
+    : lessons.length;
 
   return (
     <AppShell title={copy.appName} subtitle={copy.tagline}>
       <HomeInstallPrompt />
       <section className="grid grid-cols-2 gap-3">
-        <Card className="col-span-2 border-0 bg-gradient-to-r from-lime-600 via-green-600 to-emerald-600 text-white shadow-xl shadow-green-500/30">
-          <CardContent className="space-y-3 p-5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-base font-semibold">{copy.progress}</p>
-              <Badge variant="secondary" className="rounded-full bg-white text-lime-700">
-                {lessons.length} lessons
-              </Badge>
-            </div>
-            <p className="text-base text-lime-50">{copy.optionalLogin}</p>
-            {user ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm text-lime-100">
-                  <span>{activeCourse ? activeCourse.course : copy.progress}</span>
-                  <span>
-                    {activeCourse
-                      ? `${Math.round(activeCourse.wordPercent)}% ${copy.masteredWords.toLowerCase()}`
-                      : copy.noProgressYet}
-                  </span>
+        <Card
+          className="col-span-2 cursor-pointer border-0 bg-gradient-to-r from-lime-600 via-green-600 to-emerald-600 text-white shadow-xl shadow-green-500/30 transition hover:brightness-105"
+          onClick={() => router.push("/dictionary")}
+        >
+            <CardContent className="space-y-3 p-5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-base font-semibold">{copy.progress}</p>
+                <Badge variant="secondary" className="rounded-full bg-white text-lime-700">
+                  {progressLessonCount} lessons
+                </Badge>
+              </div>
+              <p className="text-base text-lime-50">{copy.optionalLogin}</p>
+              {user ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm text-lime-100">
+                    <span>{activeCourse ? activeCourse.course : copy.progress}</span>
+                    <span>
+                      {activeCourse
+                        ? `${Math.round(activeCourse.wordPercent)}% ${copy.masteredWords.toLowerCase()}`
+                        : copy.noProgressYet}
+                    </span>
+                  </div>
+                  <Progress value={activeCourse?.wordPercent ?? 0} className="bg-white/20" />
                 </div>
-                <Progress value={activeCourse?.wordPercent ?? 0} className="bg-white/20" />
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2 pt-1">
-                <Link href="/profile">
-                  <Button size="sm" variant="secondary" className="bg-white text-lime-700 hover:bg-lime-100">
-                    {copy.signUp}
-                  </Button>
-                </Link>
-                <Link href="/profile">
-                  <Button size="sm" variant="secondary" className="bg-white text-lime-800 hover:bg-lime-100">
-                    {copy.signIn}
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
+              ) : (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Link href="/profile" onClick={(event) => event.stopPropagation()}>
+                    <Button size="sm" variant="secondary" className="bg-white text-lime-700 hover:bg-lime-100">
+                      {copy.signUp}
+                    </Button>
+                  </Link>
+                  <Link href="/profile" onClick={(event) => event.stopPropagation()}>
+                    <Button size="sm" variant="secondary" className="bg-white text-lime-800 hover:bg-lime-100">
+                      {copy.signIn}
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
         </Card>
 
         <GameCard

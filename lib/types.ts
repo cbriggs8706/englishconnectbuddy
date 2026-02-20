@@ -83,6 +83,7 @@ export type Profile = {
   id: string;
   display_name: string | null;
   real_name: string | null;
+  last_name: string | null;
   nickname: string | null;
   selected_course: string;
   native_language: Language | null;

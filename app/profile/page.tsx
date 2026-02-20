@@ -51,6 +51,7 @@ export default function ProfilePage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [realName, setRealName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState("EC1");
 
@@ -71,6 +72,7 @@ export default function ProfilePage() {
       .from("profiles")
       .update({
         real_name: (realName ?? profile?.real_name ?? "").trim(),
+        last_name: (lastName ?? profile?.last_name ?? "").trim(),
         nickname: (nickname ?? profile?.nickname ?? "").trim(),
         display_name: (nickname ?? profile?.nickname ?? "").trim(),
         selected_course: selectedCourse.trim() || "EC1",
@@ -240,10 +242,17 @@ export default function ProfilePage() {
         <Card>
           <CardContent className="space-y-3 p-4">
             <div className="space-y-1">
-              <Label>Real name</Label>
+              <Label>First name</Label>
               <Input
                 onChange={(event) => setRealName(event.target.value)}
                 value={realName ?? profile?.real_name ?? ""}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Last name</Label>
+              <Input
+                onChange={(event) => setLastName(event.target.value)}
+                value={lastName ?? profile?.last_name ?? ""}
               />
             </div>
             <div className="space-y-1">

@@ -6,10 +6,10 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { quizDisplayName, getOrCreateGuestToken, nicknameAllowed } from "@/lib/quiz";
+import { quizDisplayName, getOrCreateGuestToken, nicknameAllowed, normalizeJoinCode } from "@/lib/quiz";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useMemo, useState } from "react";
+import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 const copy = {
   en: {
@@ -38,31 +38,65 @@ const copy = {
 function QuizJoinContent() {
   const { language } = useLanguage();
   const text = useMemo(() => copy[language], [language]);
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const initialCodeFromUrl = searchParams.get("code") ?? "";
 
-  const [code, setCode] = useState(searchParams.get("code") ?? "");
+  const [code, setCode] = useState(initialCodeFromUrl);
   const [nickname, setNickname] = useState(quizDisplayName(profile) ?? "");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const autoJoinAttemptedRef = useRef(false);
+
+  const signedInJoinName = useMemo(() => {
+    if (!user) return "";
+    const preferred = quizDisplayName(profile);
+    if (preferred) return preferred;
+    const emailName = user.email?.split("@")[0]?.trim();
+    if (emailName) return emailName;
+    return "Student";
+  }, [profile, user]);
+
+  useEffect(() => {
+    if (!user || authLoading || autoJoinAttemptedRef.current) return;
+    const normalizedCode = normalizeJoinCode(initialCodeFromUrl);
+    if (!normalizedCode) return;
+    autoJoinAttemptedRef.current = true;
+    void joinSession(normalizedCode, signedInJoinName, true);
+  }, [authLoading, initialCodeFromUrl, signedInJoinName, user]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!nicknameAllowed(nickname)) {
+    if (authLoading) return;
+    const normalizedCode = normalizeJoinCode(code);
+    if (!normalizedCode) {
+      setMessage("Join failed");
+      return;
+    }
+
+    const nextNickname = user ? signedInJoinName : nickname.trim();
+    if (!nextNickname || !nicknameAllowed(nextNickname)) {
       setMessage(text.badNickname);
       return;
     }
 
+    await joinSession(normalizedCode, nextNickname, false);
+  }
+
+  async function joinSession(normalizedCode: string, resolvedNickname: string, silent: boolean) {
+    if (!silent) {
+      setMessage(null);
+    }
+
     setLoading(true);
-    setMessage(null);
 
     const supabase = createClient();
     const guestToken = user ? null : getOrCreateGuestToken();
 
     const { data, error } = await supabase.rpc("quiz_join_session", {
-      p_join_code: code.trim(),
-      p_nickname: nickname.trim(),
+      p_join_code: normalizedCode,
+      p_nickname: resolvedNickname,
       p_guest_token: guestToken,
     });
 
@@ -95,10 +129,12 @@ function QuizJoinContent() {
               <label className="text-sm font-medium">{text.joinCode}</label>
               <Input value={code} onChange={(event) => setCode(event.target.value)} required />
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">{text.nickname}</label>
-              <Input value={nickname} onChange={(event) => setNickname(event.target.value)} required />
-            </div>
+            {!authLoading && !user ? (
+              <div className="space-y-1">
+                <label className="text-sm font-medium">{text.nickname}</label>
+                <Input value={nickname} onChange={(event) => setNickname(event.target.value)} required />
+              </div>
+            ) : null}
             {message ? <p className="text-sm text-destructive">{message}</p> : null}
             <Button type="submit" className="w-full" disabled={loading}>
               {text.join}

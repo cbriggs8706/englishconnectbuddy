@@ -3,6 +3,7 @@
 import { AdminGate } from "@/components/app/admin-gate";
 import { AppShell } from "@/components/app/app-shell";
 import { useCurriculum } from "@/components/app/use-curriculum";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,9 @@ const copy = {
     chooseAtLeastOne: "Choose at least one lesson.",
     openQuizzes: "Open quizzes",
     noOpenQuizzes: "No open quizzes right now.",
+    createdBy: "Created by",
+    unknownHost: "Unknown",
+    you: "you",
     open: "Open",
     close: "Close",
     closing: "Closing...",
@@ -38,6 +42,9 @@ const copy = {
     chooseAtLeastOne: "Selecciona por lo menos una leccion.",
     openQuizzes: "Quizzes abiertos",
     noOpenQuizzes: "No hay quizzes abiertos ahora.",
+    createdBy: "Creado por",
+    unknownHost: "Desconocido",
+    you: "tu",
     open: "Abrir",
     close: "Cerrar",
     closing: "Cerrando...",
@@ -51,6 +58,9 @@ const copy = {
     chooseAtLeastOne: "Selecione ao menos uma licao.",
     openQuizzes: "Quizzes abertos",
     noOpenQuizzes: "Nao ha quizzes abertos agora.",
+    createdBy: "Criado por",
+    unknownHost: "Desconhecido",
+    you: "voce",
     open: "Abrir",
     close: "Encerrar",
     closing: "Encerrando...",
@@ -61,6 +71,7 @@ export default function QuizHostSetupPage() {
   const { language } = useLanguage();
   const text = useMemo(() => copy[language], [language]);
   const { lessons, vocab } = useCurriculum();
+  const { user } = useAuth();
   const router = useRouter();
 
   const [lessonIds, setLessonIds] = useState<string[]>([]);
@@ -69,6 +80,7 @@ export default function QuizHostSetupPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [openSessions, setOpenSessions] = useState<QuizSession[]>([]);
+  const [hostNamesById, setHostNamesById] = useState<Record<string, string>>({});
   const [closingSessionId, setClosingSessionId] = useState<string | null>(null);
   const durationOptions = [10, 20, 30, 45, 60] as const;
   const vocabCountByLesson = useMemo(() => {
@@ -95,12 +107,39 @@ export default function QuizHostSetupPage() {
       .in("status", ["waiting", "active"])
       .order("created_at", { ascending: false })
       .limit(30);
-    setOpenSessions((data as QuizSession[]) ?? []);
+    const sessions = (data as QuizSession[]) ?? [];
+    setOpenSessions(sessions);
+
+    const hostIds = Array.from(new Set(sessions.map((session) => session.host_user_id).filter(Boolean)));
+    if (hostIds.length === 0) {
+      setHostNamesById({});
+      return;
+    }
+
+    const { data: hostProfiles } = await supabase
+      .from("profiles")
+      .select("id, nickname, real_name, display_name")
+      .in("id", hostIds);
+
+    const nextMap: Record<string, string> = {};
+    for (const hostId of hostIds) {
+      nextMap[hostId] = hostId;
+    }
+    for (const profile of (hostProfiles as Array<{
+      id: string;
+      nickname: string | null;
+      real_name: string | null;
+      display_name: string | null;
+    }>) ?? []) {
+      const preferredName = profile.nickname?.trim() || profile.real_name?.trim() || profile.display_name?.trim();
+      nextMap[profile.id] = preferredName || profile.id;
+    }
+    setHostNamesById(nextMap);
   }
 
   useEffect(() => {
     void loadOpenSessions();
-  }, []);
+  }, [user?.id]);
 
   function toggleLesson(lessonId: string) {
     setLessonIds((prev) => {
@@ -242,6 +281,10 @@ export default function QuizHostSetupPage() {
                   <div>
                     <p className="font-semibold">{session.join_code}</p>
                     <p className="text-xs text-muted-foreground">{session.status}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {text.createdBy}: {hostNamesById[session.host_user_id] || text.unknownHost}
+                      {user?.id === session.host_user_id ? ` (${text.you})` : ""}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/quiz/host/${session.id}`}>

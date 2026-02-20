@@ -6,6 +6,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { normalizeJoinCode } from "@/lib/quiz";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 import { QuizSession } from "@/lib/types";
 import Link from "next/link";
@@ -76,7 +77,7 @@ export default function QuizHomePage() {
 
   function onJoinSubmit(event: FormEvent) {
     event.preventDefault();
-    const normalizedCode = code.trim();
+    const normalizedCode = normalizeJoinCode(code);
     if (!normalizedCode) return;
     router.push(`/quiz/join?code=${encodeURIComponent(normalizedCode)}`);
   }

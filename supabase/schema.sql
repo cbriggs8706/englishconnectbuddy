@@ -5,6 +5,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text,
   real_name text,
+  last_name text,
   nickname text,
   selected_course text not null default 'EC1',
   native_language text check (native_language in ('en', 'es', 'pt')),
@@ -13,6 +14,7 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles add column if not exists real_name text;
+alter table public.profiles add column if not exists last_name text;
 alter table public.profiles add column if not exists nickname text;
 alter table public.profiles add column if not exists selected_course text;
 update public.profiles set selected_course = 'EC1' where selected_course is null or trim(selected_course) = '';
@@ -256,6 +258,26 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
+
+create or replace function public.prevent_profile_admin_flag_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.is_admin is distinct from old.is_admin
+     and not public.is_admin(auth.uid()) then
+    raise exception 'Only admins can change admin access';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists prevent_profile_admin_flag_change on public.profiles;
+create trigger prevent_profile_admin_flag_change
+before update on public.profiles
+for each row execute function public.prevent_profile_admin_flag_change();
 
 create or replace function public.is_admin(uid uuid)
 returns boolean
@@ -614,6 +636,9 @@ where coalesce(array_length(lesson_ids, 1), 0) = 0;
 
 create index if not exists quiz_sessions_join_code_idx on public.quiz_sessions (join_code);
 create index if not exists quiz_sessions_status_idx on public.quiz_sessions (status);
+create unique index if not exists quiz_sessions_host_one_open_idx
+on public.quiz_sessions (host_user_id)
+where status in ('waiting', 'active');
 
 create table if not exists public.quiz_questions (
   id uuid primary key default gen_random_uuid(),
@@ -722,6 +747,18 @@ begin
 
   if auth.uid() is null or not public.is_admin(auth.uid()) then
     raise exception 'Only teachers can host quizzes';
+  end if;
+
+  select id
+  into v_session_id
+  from public.quiz_sessions
+  where host_user_id = auth.uid()
+    and status in ('waiting', 'active')
+  order by created_at desc
+  limit 1;
+
+  if v_session_id is not null then
+    return v_session_id;
   end if;
 
   select count(*)
@@ -891,16 +928,21 @@ declare
   v_participant public.quiz_participants%rowtype;
   v_user_id uuid := auth.uid();
   v_nickname text := trim(coalesce(p_nickname, ''));
+  v_join_code text := upper(regexp_replace(trim(coalesce(p_join_code, '')), '[^A-Za-z0-9]', '', 'g'));
   v_guest_token text := nullif(trim(coalesce(p_guest_token, '')), '');
 begin
   if v_nickname = '' then
     raise exception 'Nickname is required';
   end if;
 
+  if v_join_code = '' then
+    raise exception 'Join code is required';
+  end if;
+
   select *
   into v_session
   from public.quiz_sessions
-  where upper(join_code) = upper(trim(coalesce(p_join_code, '')))
+  where upper(join_code) = v_join_code
   order by created_at desc
   limit 1;
 
@@ -922,16 +964,20 @@ begin
       is_removed,
       last_seen_at
     )
-    select
+    values (
       v_session.id,
       v_user_id,
       v_nickname,
-      p.real_name,
+      (
+        select p.real_name
+        from public.profiles p
+        where p.id = v_user_id
+        limit 1
+      ),
       false,
       false,
       now()
-    from public.profiles p
-    where p.id = v_user_id
+    )
     on conflict (session_id, user_id)
     do update set
       nickname = excluded.nickname,
@@ -966,6 +1012,10 @@ begin
       is_removed = false,
       last_seen_at = now()
     returning * into v_participant;
+  end if;
+
+  if v_participant.id is null then
+    raise exception 'Unable to join quiz';
   end if;
 
   return jsonb_build_object(
