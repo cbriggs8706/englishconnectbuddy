@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { t } from "@/lib/i18n";
@@ -10,109 +10,83 @@ import Link from "next/link";
 export default function AdminPage() {
   const { language } = useLanguage();
   const copy = t(language);
+  const routes = [
+    { href: "/admin/lessons", title: copy.addLesson, description: copy.adminManageLessonsDesc, colors: "from-blue-600 to-cyan-500" },
+    { href: "/admin/vocab", title: copy.addVocab, description: copy.adminAddVocabDesc, colors: "from-violet-600 to-fuchsia-500" },
+    { href: "/admin/sentences", title: copy.addSentence, description: copy.adminAddSentenceDesc, colors: "from-rose-600 to-orange-500" },
+    { href: "/admin/patterns", title: copy.addPatterns, description: copy.adminAddPatternsDesc, colors: "from-emerald-600 to-teal-500" },
+    {
+      href: "/admin/quiz-results",
+      title: "Quiz Results",
+      description: "Review student quiz answers and accuracy trends.",
+      colors: "from-sky-600 to-blue-500",
+    },
+    {
+      href: "/admin/confidence-poll",
+      title: "Confidence Poll Report",
+      description: "View each student's 0-5 lesson confidence poll and course progress.",
+      colors: "from-indigo-600 to-blue-500",
+    },
+    {
+      href: "/admin/priority-poll",
+      title:
+        language === "es"
+          ? "Reporte de encuesta de prioridades"
+          : language === "pt"
+            ? "Relatorio da enquete de prioridades"
+            : "Priority Poll Report",
+      description:
+        language === "es"
+          ? "Ver las prioridades de aprendizaje ordenadas de cada estudiante."
+          : language === "pt"
+            ? "Ver as prioridades de aprendizado ordenadas de cada aluno."
+            : "View each student's ranked learning priorities.",
+      colors: "from-pink-600 to-rose-500",
+    },
+    {
+      href: "/admin/home-qr",
+      title: "Homepage QR",
+      description: "Display a large QR code that opens the homepage and install prompt.",
+      colors: "from-amber-500 to-orange-500",
+    },
+    {
+      href: "/admin/volunteer",
+      title: "Volunteer Scheduler",
+      description: "Manage volunteer timeslots, seat counts, and live signup names.",
+      colors: "from-lime-600 to-emerald-500",
+    },
+  ];
 
   return (
-    <AppShell title={copy.adminPanel}>
+    <AdminShell title={copy.adminPanel} subtitle="Desktop administration workspace">
       <AdminGate>
-        <div className="grid gap-3">
-          <Link href="/admin/lessons">
-            <Card>
-              <CardHeader>
-                <CardTitle>{copy.addLesson}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {copy.adminManageLessonsDesc}
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/vocab">
-            <Card>
-              <CardHeader>
-                <CardTitle>{copy.addVocab}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {copy.adminAddVocabDesc}
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/sentences">
-            <Card>
-              <CardHeader>
-                <CardTitle>{copy.addSentence}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {copy.adminAddSentenceDesc}
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/patterns">
-            <Card>
-              <CardHeader>
-                <CardTitle>{copy.addPatterns}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {copy.adminAddPatternsDesc}
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/quiz-results">
-            <Card>
-              <CardHeader>
-                <CardTitle>Quiz Results</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Review student quiz answers and accuracy trends.
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/confidence-poll">
-            <Card>
-              <CardHeader>
-                <CardTitle>Confidence Poll Report</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                View each student&apos;s 0-5 lesson confidence poll and course progress.
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/priority-poll">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {language === "es" ? "Reporte de encuesta de prioridades" : language === "pt" ? "Relatorio da enquete de prioridades" : "Priority Poll Report"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {language === "es"
-                  ? "Ver las prioridades de aprendizaje ordenadas de cada estudiante."
-                  : language === "pt"
-                    ? "Ver as prioridades de aprendizado ordenadas de cada aluno."
-                    : "View each student's ranked learning priorities."}
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/home-qr">
-            <Card>
-              <CardHeader>
-                <CardTitle>Homepage QR</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Display a large QR code that opens the homepage and install prompt.
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/admin/volunteer">
-            <Card>
-              <CardHeader>
-                <CardTitle>Volunteer Scheduler</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Manage volunteer timeslots, seat counts, and live signup names.
-              </CardContent>
-            </Card>
-          </Link>
+        <Card className="border-0 bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-3xl font-black">Admin Panel</CardTitle>
+          </CardHeader>
+          <CardContent className="text-lg font-semibold text-blue-50">
+            Open any admin tool from this hub. All admin pages are now in the `/admin` route and optimized for
+            full-width desktop use.
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+          {routes.map((route) => (
+            <Link key={route.href} href={route.href} className="block">
+              <Card
+                className={`aspect-square border-0 bg-linear-to-br ${route.colors} text-white shadow-lg transition-transform hover:-translate-y-0.5`}
+              >
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-2xl font-black">{route.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex h-full items-end text-base font-semibold text-white/95">
+                  {route.description}
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

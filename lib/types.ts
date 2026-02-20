@@ -181,3 +181,10 @@ export type LessonConfidencePoll = {
   created_at: string;
   updated_at: string;
 };
+
+export type UserStreak = {
+  user_id: string;
+  current_streak: number;
+  longest_streak: number;
+  last_qualified_day: string | null;
+};

@@ -8,6 +8,10 @@ const toneStyles = {
   blue: "border-0 bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25",
   yellow: "border-0 bg-gradient-to-br from-amber-400 via-orange-400 to-red-400 text-white shadow-lg shadow-orange-500/25",
   purple: "border-0 bg-gradient-to-br from-fuchsia-500 via-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25",
+  cyan: "border-0 bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25",
+  rose: "border-0 bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 text-white shadow-lg shadow-rose-500/25",
+  teal: "border-0 bg-gradient-to-br from-teal-500 via-emerald-500 to-lime-500 text-white shadow-lg shadow-emerald-500/25",
+  indigo: "border-0 bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/25",
 } as const;
 
 const titleStyles = {
@@ -15,6 +19,10 @@ const titleStyles = {
   blue: "text-white",
   yellow: "text-white",
   purple: "text-white",
+  cyan: "text-white",
+  rose: "text-white",
+  teal: "text-white",
+  indigo: "text-white",
 } as const;
 
 export function GameCard({

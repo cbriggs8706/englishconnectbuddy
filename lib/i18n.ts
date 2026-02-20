@@ -13,6 +13,7 @@ type Dictionary = {
   alphabet: string;
   numbers: string;
   hearing: string;
+  speak: string;
   matching: string;
   unscramble: string;
   profile: string;
@@ -23,6 +24,12 @@ type Dictionary = {
   more: string;
   allActivities: string;
   progress: string;
+  leaderboard: string;
+  leaderboardTitle: string;
+  leaderboardDescription: string;
+  leaderboardBadgeDescription: string;
+  currentCourseLabel: string;
+  learnerLabel: string;
   optionalLogin: string;
   signIn: string;
   signUp: string;
@@ -198,6 +205,11 @@ type Dictionary = {
   passedWithTwoOrFewerNumbers: string;
   passNumberRequirement: string;
   exitQuiz: string;
+  exitStudy: string;
+  settings: string;
+  currentStreak: string;
+  longestStreak: string;
+  streakDays: string;
 };
 
 export const dictionary: Record<Language, Dictionary> = {
@@ -208,6 +220,7 @@ export const dictionary: Record<Language, Dictionary> = {
     alphabet: "Alphabet",
     numbers: "Numbers",
     hearing: "Hearing",
+    speak: "Speak",
     matching: "Matching",
     unscramble: "Unscramble",
     profile: "Profile",
@@ -218,6 +231,12 @@ export const dictionary: Record<Language, Dictionary> = {
     more: "More",
     allActivities: "All Activities",
     progress: "Progress",
+    leaderboard: "Leaderboard",
+    leaderboardTitle: "Course Badge Rankings",
+    leaderboardDescription: "Highest mastered unit in each learner's current course.",
+    leaderboardBadgeDescription: "See all active learners and their current-course unit badge.",
+    currentCourseLabel: "Current course",
+    learnerLabel: "Learner",
     optionalLogin: "Login is optional and only saves your progress.",
     signIn: "Sign in",
     signUp: "Create account",
@@ -393,6 +412,11 @@ export const dictionary: Record<Language, Dictionary> = {
     passedWithTwoOrFewerNumbers: "You passed with 2 or fewer misses.",
     passNumberRequirement: "Pass requirement: miss no more than 2 numbers.",
     exitQuiz: "Exit quiz",
+    exitStudy: "Exit study",
+    settings: "Settings",
+    currentStreak: "Current streak",
+    longestStreak: "Longest streak",
+    streakDays: "days",
   },
   es: {
     appName: "EnglishConnect Buddy",
@@ -401,6 +425,7 @@ export const dictionary: Record<Language, Dictionary> = {
     alphabet: "Alfabeto",
     numbers: "Números",
     hearing: "Escuchar",
+    speak: "Hablar",
     matching: "Relacionar",
     unscramble: "Ordenar",
     profile: "Perfil",
@@ -411,6 +436,12 @@ export const dictionary: Record<Language, Dictionary> = {
     more: "Más",
     allActivities: "Todas las actividades",
     progress: "Progreso",
+    leaderboard: "Clasificación",
+    leaderboardTitle: "Ranking de insignias por curso",
+    leaderboardDescription: "Unidad más alta dominada en el curso actual de cada estudiante.",
+    leaderboardBadgeDescription: "Mira a todos los estudiantes activos y su insignia de unidad del curso actual.",
+    currentCourseLabel: "Curso actual",
+    learnerLabel: "Estudiante",
     optionalLogin: "Iniciar sesión es opcional y solo guarda tu progreso.",
     signIn: "Ingresar",
     signUp: "Crear cuenta",
@@ -586,6 +617,11 @@ export const dictionary: Record<Language, Dictionary> = {
     passedWithTwoOrFewerNumbers: "Aprobaste con 2 o menos fallos.",
     passNumberRequirement: "Para aprobar: no fallar más de 2 números.",
     exitQuiz: "Salir del quiz",
+    exitStudy: "Salir del estudio",
+    settings: "Configuración",
+    currentStreak: "Racha actual",
+    longestStreak: "Mejor racha",
+    streakDays: "días",
   },
   pt: {
     appName: "EnglishConnect Buddy",
@@ -594,6 +630,7 @@ export const dictionary: Record<Language, Dictionary> = {
     alphabet: "Alfabeto",
     numbers: "Números",
     hearing: "Escuta",
+    speak: "Falar",
     matching: "Combinar",
     unscramble: "Ordenar",
     profile: "Perfil",
@@ -604,6 +641,12 @@ export const dictionary: Record<Language, Dictionary> = {
     more: "Mais",
     allActivities: "Todas as atividades",
     progress: "Progresso",
+    leaderboard: "Classificação",
+    leaderboardTitle: "Ranking de insígnias por curso",
+    leaderboardDescription: "Unidade mais alta dominada no curso atual de cada aluno.",
+    leaderboardBadgeDescription: "Veja todos os alunos ativos e sua insígnia de unidade do curso atual.",
+    currentCourseLabel: "Curso atual",
+    learnerLabel: "Aluno",
     optionalLogin: "O login é opcional e só salva seu progresso.",
     signIn: "Entrar",
     signUp: "Criar conta",
@@ -779,6 +822,11 @@ export const dictionary: Record<Language, Dictionary> = {
     passedWithTwoOrFewerNumbers: "Você passou com 2 ou menos erros.",
     passNumberRequirement: "Regra para passar: errar no máximo 2 números.",
     exitQuiz: "Sair do quiz",
+    exitStudy: "Sair do estudo",
+    settings: "Configurações",
+    currentStreak: "Sequência atual",
+    longestStreak: "Maior sequência",
+    streakDays: "dias",
   },
 };
 

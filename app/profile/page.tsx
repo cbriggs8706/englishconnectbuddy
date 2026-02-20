@@ -285,20 +285,10 @@ export default function ProfilePage() {
               Save profile
             </Button>
             {profile?.is_admin ? (
-              <div className="space-y-2">
+              <div>
                 <Link href="/admin">
                   <Button className="w-full bg-linear-to-r from-indigo-500 to-blue-500 text-white hover:from-indigo-500/90 hover:to-blue-500/90">
                     Admin Panel
-                  </Button>
-                </Link>
-                <Link href="/admin/patterns">
-                  <Button className="w-full bg-linear-to-r from-emerald-500 to-cyan-500 text-white hover:from-emerald-500/90 hover:to-cyan-500/90">
-                    Pattern Uploads
-                  </Button>
-                </Link>
-                <Link href="/admin/volunteer">
-                  <Button className="w-full bg-linear-to-r from-fuchsia-500 to-pink-500 text-white hover:from-fuchsia-500/90 hover:to-pink-500/90">
-                    Volunteer Scheduler
                   </Button>
                 </Link>
               </div>

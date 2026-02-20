@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/app/app-shell";
+import { CourseLeaderboard } from "@/components/app/course-leaderboard";
 import { useCourseProgress } from "@/components/app/use-course-progress";
 import { useCurriculum } from "@/components/app/use-curriculum";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -16,11 +17,12 @@ export default function ProgressPage() {
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
   const { user, profile } = useAuth();
-  const { courseStats, lessonStats } = useCourseProgress({
+  const selectedCourse = profile?.selected_course ?? null;
+  const { courseStats, lessonStats, masteredMap } = useCourseProgress({
     lessons,
     vocab,
     user,
-    selectedCourse: profile?.selected_course ?? null,
+    selectedCourse,
   });
 
   const lessonsByCourse = new Map<string, typeof lessons>();
@@ -32,6 +34,12 @@ export default function ProgressPage() {
 
   return (
     <AppShell title={copy.progress}>
+      <CourseLeaderboard
+        lessons={lessons}
+        vocab={vocab}
+        masteredMap={masteredMap}
+        currentCourse={selectedCourse}
+      />
       {courseStats.map((course) => {
         const courseLessons = (lessonsByCourse.get(course.course) ?? []).sort(
           (a, b) => a.sequence_number - b.sequence_number

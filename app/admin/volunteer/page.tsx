@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -250,7 +250,7 @@ export default function AdminVolunteerPage() {
   }
 
   return (
-    <AppShell title="Volunteer Scheduler">
+    <AdminShell title="Volunteer Scheduler">
       <AdminGate>
         <Card>
           <CardContent className="p-4 text-sm text-muted-foreground">
@@ -468,6 +468,6 @@ export default function AdminVolunteerPage() {
           <p className="rounded-xl border bg-white p-3 text-sm text-muted-foreground">{message}</p>
         ) : null}
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
 import { AppShell } from "@/components/app/app-shell";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { recordStreakActivity } from "@/lib/streak";
 import { QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -55,6 +57,7 @@ const optionToneClasses = [
 
 export default function QuizPlayPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const { user } = useAuth();
   const { language } = useLanguage();
   const text = useMemo(() => copy[language], [language]);
 
@@ -208,6 +211,10 @@ export default function QuizPlayPage() {
       p_selected_vocab_id: optionId,
       p_guest_token: guestToken,
     });
+
+    if (user) {
+      void recordStreakActivity({ activityType: "quiz" });
+    }
   }
 
   return (

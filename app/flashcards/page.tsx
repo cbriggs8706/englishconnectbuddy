@@ -19,6 +19,7 @@ import { lessonLabel } from "@/lib/content";
 import { t } from "@/lib/i18n";
 import { resolveVocabMediaUrl } from "@/lib/media";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
+import { recordStreakActivity } from "@/lib/streak";
 import {
   applyRating,
   loadGuestProgress,
@@ -27,7 +28,7 @@ import {
   saveGuestProgress,
 } from "@/lib/spaced-repetition";
 import { FlashcardMode, FlashcardProgress } from "@/lib/types";
-import { Headphones } from "lucide-react";
+import { Headphones, Settings, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 type StudyStage = "review" | "learn";
@@ -42,8 +43,11 @@ export default function FlashcardsPage() {
   const [selectedLesson, setSelectedLesson] = useState<string>("");
   const [mode, setMode] = useState<FlashcardMode>("image-audio");
   const [studyStage, setStudyStage] = useState<StudyStage>("review");
+  const [sessionStarted, setSessionStarted] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [isApplyingRating, setIsApplyingRating] = useState(false);
   const [failedImageSrcs, setFailedImageSrcs] = useState<Record<string, true>>({});
   const [dbProgressMap, setDbProgressMap] = useState<Record<string, FlashcardProgress>>({});
   const [guestProgressMap, setGuestProgressMap] = useState(loadGuestProgress());
@@ -169,6 +173,28 @@ export default function FlashcardsPage() {
   const currentProgress = current ? getProgress(current.id) : null;
   const isFirstExposure = Boolean(current && !currentProgress);
 
+  const progressLabel = activeDeck.length > 0
+    ? `${Math.min(index + 1, activeDeck.length)} / ${activeDeck.length}`
+    : "0 / 0";
+
+  function resetCardPosition() {
+    setIndex(0);
+    setFlipped(false);
+  }
+
+  function startSession(stage: StudyStage) {
+    setStudyStage(stage);
+    setSessionStarted(true);
+    setSettingsOpen(false);
+    resetCardPosition();
+  }
+
+  function exitSession() {
+    setSessionStarted(false);
+    setSettingsOpen(false);
+    resetCardPosition();
+  }
+
   function translationForLanguage() {
     if (!current) return "";
     if (language === "es") return current.spanish_text;
@@ -188,7 +214,7 @@ export default function FlashcardsPage() {
     if (!src || failedImageSrcs[src]) return null;
 
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-xl bg-muted/30 p-2">
+      <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted/20 p-4">
         <img
           src={src}
           alt={current?.english_text || copy.flashcards}
@@ -210,14 +236,14 @@ export default function FlashcardsPage() {
           type="button"
           variant="secondary"
           size="icon"
-          className="h-16 w-16 rounded-full"
+          className="h-20 w-20 rounded-full"
           onClick={(event) => {
             event.stopPropagation();
             playAudio();
           }}
           aria-label={`${copy.play} ${copy.audio}`}
         >
-          <Headphones className="h-8 w-8" />
+          <Headphones className="h-10 w-10" />
         </Button>
       </div>
     );
@@ -225,10 +251,10 @@ export default function FlashcardsPage() {
 
   function renderText() {
     return (
-      <div className="space-y-2 text-center">
-        <p className="text-3xl font-bold text-foreground">{current?.english_text}</p>
+      <div className="space-y-3 text-center">
+        <p className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">{current?.english_text}</p>
         {current?.english_sentence ? (
-          <p className="text-sm text-muted-foreground">{current.english_sentence}</p>
+          <p className="text-base text-muted-foreground sm:text-lg">{current.english_sentence}</p>
         ) : null}
       </div>
     );
@@ -236,9 +262,9 @@ export default function FlashcardsPage() {
 
   function renderTranslation() {
     return (
-      <div className="space-y-2 text-center">
-        <p className="text-3xl font-bold text-foreground">{translationForLanguage()}</p>
-        <p className="text-sm text-muted-foreground">{language.toUpperCase()}</p>
+      <div className="space-y-3 text-center">
+        <p className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">{translationForLanguage()}</p>
+        <p className="text-base font-semibold text-muted-foreground">{language.toUpperCase()}</p>
       </div>
     );
   }
@@ -260,189 +286,316 @@ export default function FlashcardsPage() {
   }
 
   async function applyReview(rating: Rating) {
-    if (!current || !flipped) return;
+    if (!current || !flipped || isApplyingRating) return;
 
-    const existing = getProgress(current.id);
+    const activeCard = current;
+    const existing = getProgress(activeCard.id);
     const next = applyRating(existing, rating);
+    const becameMastered = !Boolean(existing?.mastered) && next.mastered;
 
-    if (user && supabaseConfigured()) {
-      const supabase = createClient();
-      await supabase.from("user_flashcard_progress").upsert(
-        {
-          user_id: user.id,
-          vocab_id: current.id,
-          ...next,
-        },
-        { onConflict: "user_id,vocab_id" }
-      );
+    setIsApplyingRating(true);
+    setFlipped(false);
 
-      setDbProgressMap((prev) => ({
-        ...prev,
-        [current.id]: {
-          id: prev[current.id]?.id ?? `${current.id}`,
-          user_id: user.id,
-          vocab_id: current.id,
-          ...next,
-        },
-      }));
-    } else {
-      const key = progressKey(current.id);
-      const updatedGuest = {
-        ...guestProgressMap,
-        [key]: {
-          vocabId: current.id,
-          streakCount: next.streak_count,
-          reviewCount: next.review_count,
-          mastered: next.mastered,
-          dueAt: next.due_at,
-          lastReviewedAt: next.last_reviewed_at,
-        },
-      };
-      setGuestProgressMap(updatedGuest);
-      saveGuestProgress(updatedGuest);
+    try {
+      if (user && supabaseConfigured()) {
+        const supabase = createClient();
+        await supabase.from("user_flashcard_progress").upsert(
+          {
+            user_id: user.id,
+            vocab_id: activeCard.id,
+            ...next,
+          },
+          { onConflict: "user_id,vocab_id" }
+        );
+
+        setDbProgressMap((prev) => ({
+          ...prev,
+          [activeCard.id]: {
+            id: prev[activeCard.id]?.id ?? `${activeCard.id}`,
+            user_id: user.id,
+            vocab_id: activeCard.id,
+            ...next,
+          },
+        }));
+
+        void recordStreakActivity({
+          activityType: "flashcards",
+          vocabId: activeCard.id,
+          becameMastered,
+        });
+      } else {
+        const key = progressKey(activeCard.id);
+        setGuestProgressMap((prev) => {
+          const updatedGuest = {
+            ...prev,
+            [key]: {
+              vocabId: activeCard.id,
+              streakCount: next.streak_count,
+              reviewCount: next.review_count,
+              mastered: next.mastered,
+              dueAt: next.due_at,
+              lastReviewedAt: next.last_reviewed_at,
+            },
+          };
+          saveGuestProgress(updatedGuest);
+          return updatedGuest;
+        });
+      }
+
+      setIndex((prev) => prev + 1);
+    } finally {
+      setIsApplyingRating(false);
     }
-
-    setIndex((prev) => prev + 1);
-    setFlipped(false);
-  }
-
-  function handleNext() {
-    setIndex((prev) => {
-      if (activeDeck.length === 0) return 0;
-      return (prev + 1) % activeDeck.length;
-    });
-    setFlipped(false);
   }
 
   return (
     <AppShell title={copy.flashcards}>
-      <Card>
-        <CardContent className="space-y-3 p-4">
-          <Select
-            value={activeLesson}
-            onValueChange={(value) => {
-              setSelectedLesson(value);
-              setIndex(0);
-              setFlipped(false);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={copy.lesson} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{copy.allLessons}</SelectItem>
-              {visibleLessons.map((lesson) => (
-                <SelectItem key={lesson.id} value={lesson.id}>
-                  {lessonLabel(lesson, language)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={mode}
-            onValueChange={(value) => {
-              setMode(value as FlashcardMode);
-              setIndex(0);
-              setFlipped(false);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={copy.cardMode} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="image-audio">{copy.modeImageAudio}</SelectItem>
-              <SelectItem value="image-text">{copy.modeImageText}</SelectItem>
-              <SelectItem value="audio-text">{copy.modeAudioText}</SelectItem>
-              <SelectItem value="text-translation">{copy.modeTextTranslation}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex flex-wrap gap-2 text-xs">
-            <Badge variant="secondary">{copy.dueCount}: {decks.due.length}</Badge>
-            <Badge variant="secondary">{copy.newCount}: {decks.fresh.length}</Badge>
-            <Badge variant="secondary">{studyStage === "review" ? copy.reviewSession : copy.learnSession}</Badge>
-          </div>
-
-          {studyStage === "review" && decks.due.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">{copy.reviewAcrossLessons}</p>
-              <Button type="button" variant="secondary" className="w-full" onClick={() => {
-                setStudyStage("learn");
-                setIndex(0);
-                setFlipped(false);
-              }}>
-                {copy.skipReview}
-              </Button>
-            </div>
-          ) : null}
-
-          {studyStage === "learn" && decks.due.length > 0 ? (
-            <Button type="button" className="w-full" onClick={() => {
-              setStudyStage("review");
-              setIndex(0);
-              setFlipped(false);
-            }}>
-              {copy.reviewSession}
-            </Button>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      {studyStage === "review" && decks.due.length === 0 ? (
+      {!sessionStarted ? (
         <Card>
-          <CardContent className="space-y-3 p-6">
-            <p className="text-base font-semibold">{copy.reviewComplete}</p>
-            <Button type="button" className="w-full" onClick={() => {
-              setStudyStage("learn");
-              setIndex(0);
-              setFlipped(false);
-            }}>
-              {copy.startLearningNew}
-            </Button>
+          <CardContent className="space-y-4 p-4">
+            <Select
+              value={activeLesson}
+              onValueChange={(value) => {
+                setSelectedLesson(value);
+                resetCardPosition();
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={copy.lesson} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{copy.allLessons}</SelectItem>
+                {visibleLessons.map((lesson) => (
+                  <SelectItem key={lesson.id} value={lesson.id}>
+                    {lessonLabel(lesson, language)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={mode}
+              onValueChange={(value) => {
+                setMode(value as FlashcardMode);
+                resetCardPosition();
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={copy.cardMode} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="image-audio">{copy.modeImageAudio}</SelectItem>
+                <SelectItem value="image-text">{copy.modeImageText}</SelectItem>
+                <SelectItem value="audio-text">{copy.modeAudioText}</SelectItem>
+                <SelectItem value="text-translation">{copy.modeTextTranslation}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary" className="text-sm">{copy.dueCount}: {decks.due.length}</Badge>
+              <Badge variant="secondary" className="text-sm">{copy.newCount}: {decks.fresh.length}</Badge>
+            </div>
+
+            {decks.due.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-base text-muted-foreground">{copy.reviewAcrossLessons}</p>
+                <Button type="button" className="w-full text-base" onClick={() => startSession("review")}>
+                  {copy.reviewSession}
+                </Button>
+                <Button type="button" variant="secondary" className="w-full text-base" onClick={() => startSession("learn")}>
+                  {copy.skipReview}
+                </Button>
+              </div>
+            ) : (
+              <Button type="button" className="w-full text-base" onClick={() => startSession("learn")}>
+                {copy.startLearningNew}
+              </Button>
+            )}
           </CardContent>
         </Card>
-      ) : null}
-
-      {!current ? (
-        studyStage === "review" && decks.due.length === 0 ? null : (
-          <Card>
-            <CardContent className="p-6 text-sm text-muted-foreground">{copy.noData}</CardContent>
-          </Card>
-        )
       ) : (
-        <div className="space-y-3">
-          <button
-            type="button"
-            className="flashcard-scene w-full"
-            onClick={() => setFlipped((prev) => !prev)}
-          >
-            <div className={`flashcard-inner ${flipped ? "is-flipped" : ""}`}>
-              <div className="flashcard-face flashcard-front">{frontContent()}</div>
-              <div className="flashcard-face flashcard-back">{backContent()}</div>
-            </div>
-          </button>
-
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" onClick={() => setFlipped((prev) => !prev)}>
-              {flipped ? copy.showFront : copy.flipCard}
+        <div className="flex h-[calc(100dvh-14.5rem)] min-h-[34rem] flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="h-12 w-12 rounded-full"
+              onClick={exitSession}
+              aria-label={copy.exitStudy}
+            >
+              <X className="h-7 w-7" />
             </Button>
-            <Button onClick={handleNext}>{copy.next}</Button>
+            <p className="text-3xl font-extrabold tracking-tight text-foreground">{progressLabel}</p>
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="h-12 w-12 rounded-full"
+              onClick={() => setSettingsOpen((prev) => !prev)}
+              aria-label={copy.settings}
+            >
+              <Settings className="h-6 w-6" />
+            </Button>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <Button disabled={!flipped} variant="secondary" onClick={() => void applyReview("weak")}>{copy.ratingKeepInDeck}</Button>
-            <Button disabled={!flipped} variant="secondary" onClick={() => void applyReview("improving")}>{copy.ratingKindOf}</Button>
-            <Button disabled={!flipped} onClick={() => void applyReview("strong")}>{copy.ratingGotIt}</Button>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted/50">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${activeDeck.length === 0 ? 0 : (Math.min(index + 1, activeDeck.length) / activeDeck.length) * 100}%` }}
+            />
           </div>
 
-          {isFirstExposure ? (
-            <Button disabled={!flipped} className="w-full" onClick={() => void applyReview("master-now")}>
-              {copy.masterNow}
-            </Button>
+          {settingsOpen ? (
+            <Card>
+              <CardContent className="space-y-3 p-4">
+                <Select
+                  value={activeLesson}
+                  onValueChange={(value) => {
+                    setSelectedLesson(value);
+                    resetCardPosition();
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={copy.lesson} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{copy.allLessons}</SelectItem>
+                    {visibleLessons.map((lesson) => (
+                      <SelectItem key={lesson.id} value={lesson.id}>
+                        {lessonLabel(lesson, language)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={mode}
+                  onValueChange={(value) => {
+                    setMode(value as FlashcardMode);
+                    resetCardPosition();
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={copy.cardMode} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="image-audio">{copy.modeImageAudio}</SelectItem>
+                    <SelectItem value="image-text">{copy.modeImageText}</SelectItem>
+                    <SelectItem value="audio-text">{copy.modeAudioText}</SelectItem>
+                    <SelectItem value="text-translation">{copy.modeTextTranslation}</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {decks.due.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={studyStage === "review" ? "default" : "secondary"}
+                      onClick={() => startSession("review")}
+                    >
+                      {copy.reviewSession}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={studyStage === "learn" ? "default" : "secondary"}
+                      onClick={() => startSession("learn")}
+                    >
+                      {copy.learnSession}
+                    </Button>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
           ) : null}
 
-          {!flipped ? <p className="text-center text-xs text-muted-foreground">{copy.flipToRate}</p> : null}
+          {!current ? (
+            <Card className="flex-1">
+              <CardContent className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+                <p className="text-lg font-semibold text-foreground">
+                  {studyStage === "review" ? copy.reviewComplete : copy.noData}
+                </p>
+                {studyStage === "review" ? (
+                  <Button type="button" className="w-full" onClick={() => startSession("learn")}>
+                    {copy.startLearningNew}
+                  </Button>
+                ) : (
+                  <Button type="button" variant="secondary" className="w-full" onClick={exitSession}>
+                    {copy.exitStudy}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={flipped ? copy.showFront : copy.flipCard}
+                className="flashcard-scene flashcard-scene-immersive w-full min-h-0 flex-1 cursor-pointer"
+                onClick={() => {
+                  if (isApplyingRating) return;
+                  setFlipped((prev) => !prev);
+                }}
+                onKeyDown={(event) => {
+                  if (isApplyingRating) return;
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setFlipped((prev) => !prev);
+                  }
+                }}
+              >
+                <div className={`flashcard-inner ${flipped ? "is-flipped" : ""}`}>
+                  <div className="flashcard-face flashcard-front">{frontContent()}</div>
+                  <div className="flashcard-face flashcard-back">{backContent()}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pb-2">
+                <Button
+                  disabled={!flipped || isApplyingRating}
+                  variant="secondary"
+                  className="h-14 text-base font-bold"
+                  onClick={() => void applyReview("weak")}
+                >
+                  {copy.ratingKeepInDeck}
+                </Button>
+                <Button
+                  disabled={!flipped || isApplyingRating}
+                  variant="secondary"
+                  className="h-14 text-base font-bold"
+                  onClick={() => void applyReview("improving")}
+                >
+                  {copy.ratingKindOf}
+                </Button>
+                <Button
+                  disabled={!flipped || isApplyingRating}
+                  className="h-14 text-base font-bold"
+                  onClick={() => void applyReview("strong")}
+                >
+                  {copy.ratingGotIt}
+                </Button>
+              </div>
+
+              {isFirstExposure ? (
+                <Button
+                  disabled={!flipped || isApplyingRating}
+                  className="w-full"
+                  onClick={() => void applyReview("master-now")}
+                >
+                  {copy.masterNow}
+                </Button>
+              ) : null}
+
+              <p
+                className={`min-h-6 text-center text-sm font-semibold text-muted-foreground transition-opacity ${
+                  flipped ? "opacity-0" : "opacity-100"
+                }`}
+              >
+                {copy.flipToRate}
+              </p>
+            </>
+          )}
         </div>
       )}
     </AppShell>

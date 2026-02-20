@@ -163,3 +163,45 @@ export function buildCourseStats(
     return a.course.localeCompare(b.course);
   });
 }
+
+export function highestMasteredUnitForCourse(
+  lessons: Lesson[],
+  vocab: VocabularyItem[],
+  masteredMap: Record<string, true>,
+  course: string
+) {
+  const courseLessons = lessons.filter((lesson) => lesson.course === course);
+  if (courseLessons.length === 0) return 0;
+
+  const unitByLessonId = new Map(courseLessons.map((lesson) => [lesson.id, lesson.unit]));
+  const totalsByUnit = new Map<number, { total: number; mastered: number }>();
+
+  for (const lesson of courseLessons) {
+    if (!totalsByUnit.has(lesson.unit)) {
+      totalsByUnit.set(lesson.unit, { total: 0, mastered: 0 });
+    }
+  }
+
+  for (const item of vocab) {
+    const unit = unitByLessonId.get(item.lesson_id);
+    if (unit === undefined) continue;
+
+    const totals = totalsByUnit.get(unit);
+    if (!totals) continue;
+
+    totals.total += 1;
+    if (masteredMap[item.id]) {
+      totals.mastered += 1;
+    }
+  }
+
+  let highest = 0;
+  for (const [unit, totals] of totalsByUnit.entries()) {
+    const completed = totals.total > 0 && totals.mastered === totals.total;
+    if (completed && unit > highest) {
+      highest = unit;
+    }
+  }
+
+  return highest;
+}

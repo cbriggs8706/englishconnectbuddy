@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -199,7 +199,7 @@ export default function AdminPriorityPollPage() {
   }, [priorityRows]);
 
   return (
-    <AppShell title={text.shellTitle} subtitle={text.shellSubtitle}>
+    <AdminShell title={text.shellTitle} subtitle={text.shellSubtitle}>
       <AdminGate>
         {loading ? (
           <p className="text-base text-muted-foreground">{text.loading}</p>
@@ -252,6 +252,6 @@ export default function AdminPriorityPollPage() {
           </div>
         )}
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

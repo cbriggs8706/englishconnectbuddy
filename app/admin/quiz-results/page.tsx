@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,7 +78,7 @@ function QuizResultsContent() {
   );
 
   return (
-    <AppShell title={text.title}>
+    <AdminShell title={text.title}>
       <AdminGate>
         <Card>
           <CardContent className="p-4">
@@ -155,7 +155,7 @@ function QuizResultsContent() {
           </Card>
         ) : null}
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }
 

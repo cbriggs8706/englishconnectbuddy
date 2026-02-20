@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -668,7 +668,7 @@ export default function AdminVocabPage() {
   }
 
   return (
-    <AppShell title="Words & Phrases Admin">
+    <AdminShell title="Words & Phrases Admin">
       <AdminGate>
         <div className="grid gap-4">
           <Card className="border-red-300 bg-red-50">
@@ -1018,6 +1018,6 @@ export default function AdminVocabPage() {
           {message ? <p className="text-base text-slate-700">{message}</p> : null}
         </div>
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

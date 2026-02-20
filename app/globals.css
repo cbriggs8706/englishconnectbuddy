@@ -191,6 +191,11 @@
     height: 24rem;
   }
 
+  .flashcard-scene-immersive {
+    height: 100%;
+    min-height: 0;
+  }
+
   .flashcard-inner {
     position: relative;
     height: 100%;
@@ -214,7 +219,7 @@
     background: var(--card);
     padding: 1rem;
     backface-visibility: hidden;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .flashcard-back {

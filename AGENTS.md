@@ -5,6 +5,7 @@
 - Use large typography by default; avoid tiny helper text unless absolutely necessary.
 - Keep backgrounds mostly white or very light neutrals for readability.
 - Use bold, saturated color blocks and gradients for primary cards and actions.
+- For homepage supporting tiles, prefer the same vibrant multi-gradient palette used in `app/admin/page.tsx` (Admin Panel cards) instead of repeating a small set of colors.
 - Prefer filled buttons over outline buttons.
 - Keep contrast strong: dark text on light surfaces, white text on saturated surfaces.
 - Favor rounded, high-visibility components with clear spacing and hierarchy.

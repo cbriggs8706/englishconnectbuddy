@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useCurriculum } from "@/components/app/use-curriculum";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ export default function AdminSentencePage() {
   }
 
   return (
-    <AppShell title={copy.addSentence}>
+    <AdminShell title={copy.addSentence}>
       <AdminGate>
         <Card>
           <CardContent className="p-4">
@@ -106,6 +106,6 @@ export default function AdminSentencePage() {
         </Card>
         {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

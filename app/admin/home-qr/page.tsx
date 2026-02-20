@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { absoluteUrl } from "@/lib/app-url";
@@ -18,7 +18,7 @@ export default function AdminHomeQrPage() {
   }, [url]);
 
   return (
-    <AppShell title="Homepage QR">
+    <AdminShell title="Homepage QR">
       <AdminGate>
         <Card>
           <CardHeader>
@@ -46,6 +46,6 @@ export default function AdminHomeQrPage() {
           </CardContent>
         </Card>
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

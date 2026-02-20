@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useCurriculum } from "@/components/app/use-curriculum";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
@@ -207,7 +207,7 @@ export default function AdminPatternsPage() {
   }
 
   return (
-    <AppShell title={copy.addPatterns}>
+    <AdminShell title={copy.addPatterns}>
       <AdminGate>
         <Card className="border-0 bg-gradient-to-br from-sky-500 via-cyan-500 to-emerald-500 text-white shadow-xl shadow-cyan-500/30">
           <CardContent className="p-5">
@@ -284,6 +284,6 @@ export default function AdminPatternsPage() {
 
         {message ? <p className="text-base font-semibold text-slate-700">{message}</p> : null}
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

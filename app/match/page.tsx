@@ -18,6 +18,7 @@ import {
 import { lessonLabel, promptText } from "@/lib/content";
 import { resolveVocabMediaUrl } from "@/lib/media";
 import { t } from "@/lib/i18n";
+import { recordStreakActivity } from "@/lib/streak";
 import { VocabularyItem } from "@/lib/types";
 import { Headphones } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -230,6 +231,9 @@ export default function MatchingPage() {
 
   useEffect(() => {
     if (!isRoundComplete) return;
+    if (user) {
+      void recordStreakActivity({ activityType: "matching" });
+    }
     playSuccessTrumpet();
     setConfettiPieces(createConfettiPieces());
     setShowConfetti(true);

@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
+import { getLocalDay, recordStreakLogin } from "@/lib/streak";
 import { Profile } from "@/lib/types";
 import { User } from "@supabase/supabase-js";
 import {
@@ -83,6 +84,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }),
     [user, profile]
   );
+
+  useEffect(() => {
+    if (!user || !supabaseConfigured() || typeof window === "undefined") return;
+
+    const day = getLocalDay();
+    const cacheKey = `ecb-streak-login:${user.id}:${day}`;
+    if (localStorage.getItem(cacheKey) === "1") return;
+
+    void recordStreakLogin().finally(() => {
+      localStorage.setItem(cacheKey, "1");
+    });
+  }, [user?.id]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

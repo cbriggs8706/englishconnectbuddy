@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useCurriculum } from "@/components/app/use-curriculum";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
@@ -64,7 +64,7 @@ export default function AdminLessonsPage() {
   }
 
   return (
-    <AppShell title={copy.addLesson}>
+    <AdminShell title={copy.addLesson}>
       <AdminGate>
         <Card>
           <CardContent className="p-4">
@@ -138,6 +138,6 @@ export default function AdminLessonsPage() {
         <p className="text-xs text-muted-foreground">{copy.currentLessons}: {lessons.length}</p>
         {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

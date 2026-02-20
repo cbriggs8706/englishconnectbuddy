@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminGate } from "@/components/app/admin-gate";
-import { AppShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { useCurriculum } from "@/components/app/use-curriculum";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Badge } from "@/components/ui/badge";
@@ -298,7 +298,7 @@ export default function AdminConfidencePollPage() {
   );
 
   return (
-    <AppShell title="Admin: Confidence Poll" subtitle="Students, poll results, and course progress">
+    <AdminShell title="Admin: Confidence Poll" subtitle="Students, poll results, and course progress">
       <AdminGate>
         {loading || curriculumLoading ? (
           <p className="text-base text-muted-foreground">Loading student confidence data...</p>
@@ -390,6 +390,6 @@ export default function AdminConfidencePollPage() {
           </div>
         )}
       </AdminGate>
-    </AppShell>
+    </AdminShell>
   );
 }

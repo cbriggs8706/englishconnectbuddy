@@ -12,15 +12,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { t } from "@/lib/i18n";
+import { fetchMyStreak } from "@/lib/streak";
+import { UserStreak } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { language } = useLanguage();
   const copy = t(language);
+  const speakDescription =
+    language === "es"
+      ? "Habla la respuesta en inglés usando imagen, traducción o frase incompleta."
+      : language === "pt"
+        ? "Fale a resposta em inglês usando imagem, tradução ou frase incompleta."
+        : "Speak the English answer from an image, translation, or cloze phrase.";
   const { lessons, vocab } = useCurriculum();
   const { user, profile } = useAuth();
   const router = useRouter();
+  const [streak, setStreak] = useState<UserStreak | null>(null);
   const selectedCourse = profile?.selected_course ?? null;
   const { courseStats } = useCourseProgress({ lessons, vocab, user, selectedCourse });
   const activeCourse =
@@ -32,6 +42,17 @@ export default function Home() {
   const progressLessonCount = progressCourse
     ? lessons.filter((lesson) => lesson.course === progressCourse).length
     : lessons.length;
+
+  useEffect(() => {
+    if (!user) {
+      setStreak(null);
+      return;
+    }
+
+    void fetchMyStreak().then((data) => {
+      setStreak(data);
+    });
+  }, [user?.id]);
 
   return (
     <AppShell title={copy.appName} subtitle={copy.tagline}>
@@ -60,6 +81,20 @@ export default function Home() {
                     </span>
                   </div>
                   <Progress value={activeCourse?.wordPercent ?? 0} className="bg-white/20" />
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="rounded-xl bg-white/20 p-3">
+                      <p className="text-xs font-bold uppercase tracking-wide text-lime-100">{copy.currentStreak}</p>
+                      <p className="text-2xl font-black text-white">
+                        {streak?.current_streak ?? 0} {copy.streakDays}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/20 p-3">
+                      <p className="text-xs font-bold uppercase tracking-wide text-lime-100">{copy.longestStreak}</p>
+                      <p className="text-2xl font-black text-white">
+                        {streak?.longest_streak ?? 0} {copy.streakDays}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2 pt-1">
@@ -82,21 +117,21 @@ export default function Home() {
           title={copy.flashcards}
           description={copy.homeFlashcardsDesc}
           href="/flashcards"
-          tone="green"
+          tone="cyan"
           cta={copy.play}
         />
         <GameCard
           title={copy.alphabet}
           description={copy.homeAlphabetDesc}
           href="/alphabet"
-          tone="purple"
+          tone="rose"
           cta={copy.play}
         />
         <GameCard
           title={copy.numbers}
           description={copy.homeNumbersDesc}
           href="/numbers"
-          tone="blue"
+          tone="indigo"
           cta={copy.play}
         />
         <GameCard
@@ -107,17 +142,24 @@ export default function Home() {
           cta={copy.play}
         />
         <GameCard
+          title={copy.speak}
+          description={speakDescription}
+          href="/speak"
+          tone="rose"
+          cta={copy.play}
+        />
+        <GameCard
           title={copy.matching}
           description={copy.homeMatchingDesc}
           href="/match"
-          tone="blue"
+          tone="teal"
           cta={copy.play}
         />
         <GameCard
           title={copy.unscramble}
           description={copy.homeUnscrambleDesc}
           href="/unscramble"
-          tone="yellow"
+          tone="green"
           cta={copy.play}
         />
         <GameCard
@@ -132,6 +174,13 @@ export default function Home() {
           description={copy.homeLiveQuizDesc}
           href="/quiz"
           tone="purple"
+          cta={copy.play}
+        />
+        <GameCard
+          title={copy.leaderboard}
+          description={copy.leaderboardBadgeDescription}
+          href="/leaderboard"
+          tone="yellow"
           cta={copy.play}
         />
 
