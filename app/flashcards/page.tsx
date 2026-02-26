@@ -46,6 +46,8 @@ export default function FlashcardsPage() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [index, setIndex] = useState(0);
+  const [sessionTotal, setSessionTotal] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [isApplyingRating, setIsApplyingRating] = useState(false);
   const [failedImageSrcs, setFailedImageSrcs] = useState<Record<string, true>>({});
@@ -173,9 +175,11 @@ export default function FlashcardsPage() {
   const currentProgress = current ? getProgress(current.id) : null;
   const isFirstExposure = Boolean(current && !currentProgress);
 
-  const progressLabel = activeDeck.length > 0
-    ? `${Math.min(index + 1, activeDeck.length)} / ${activeDeck.length}`
-    : "0 / 0";
+  const progressNumerator = sessionTotal > 0
+    ? Math.min(completedCount + (current ? 1 : 0), sessionTotal)
+    : 0;
+  const progressLabel = `${progressNumerator} / ${sessionTotal}`;
+  const progressPercent = sessionTotal > 0 ? (progressNumerator / sessionTotal) * 100 : 0;
 
   function resetCardPosition() {
     setIndex(0);
@@ -183,15 +187,20 @@ export default function FlashcardsPage() {
   }
 
   function startSession(stage: StudyStage) {
+    const deckForStage = stage === "review" ? decks.due : decks.learnDeck;
     setStudyStage(stage);
     setSessionStarted(true);
     setSettingsOpen(false);
+    setSessionTotal(deckForStage.length);
+    setCompletedCount(0);
     resetCardPosition();
   }
 
   function exitSession() {
     setSessionStarted(false);
     setSettingsOpen(false);
+    setSessionTotal(0);
+    setCompletedCount(0);
     resetCardPosition();
   }
 
@@ -345,6 +354,7 @@ export default function FlashcardsPage() {
       }
 
       setIndex((prev) => prev + 1);
+      setCompletedCount((prev) => prev + 1);
     } finally {
       setIsApplyingRating(false);
     }
@@ -444,7 +454,7 @@ export default function FlashcardsPage() {
           <div className="h-1.5 overflow-hidden rounded-full bg-muted/50">
             <div
               className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${activeDeck.length === 0 ? 0 : (Math.min(index + 1, activeDeck.length) / activeDeck.length) * 100}%` }}
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
 

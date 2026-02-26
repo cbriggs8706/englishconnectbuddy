@@ -752,6 +752,7 @@ declare
   v_selected_en_keys text[];
   v_selected_es_keys text[];
   v_selected_pt_keys text[];
+  v_prompt_is_phrase boolean := false;
 begin
   v_lesson_ids := array(
     select distinct lesson_id
@@ -815,7 +816,7 @@ begin
   returning id into v_session_id;
 
   for v_prompt in
-    select id, image_url, english_text, spanish_text, portuguese_text
+    select id, image_url, item_type, english_text, spanish_text, portuguese_text
     from public.vocabulary
     where lesson_id = any(v_lesson_ids)
     order by random()
@@ -829,6 +830,10 @@ begin
     v_selected_en_keys := array[v_prompt_en_key];
     v_selected_es_keys := array[v_prompt_es_key];
     v_selected_pt_keys := array[v_prompt_pt_key];
+    v_prompt_is_phrase := (
+      coalesce(lower(trim(v_prompt.item_type)), '') = 'phrase'
+      or trim(coalesce(v_prompt.english_text, '')) ~ '\s'
+    );
 
     for v_distractor in
       select
@@ -839,6 +844,10 @@ begin
       from public.vocabulary
       where lesson_id = any(v_lesson_ids)
         and id <> v_prompt.id
+        and (
+          coalesce(lower(trim(item_type)), '') = 'phrase'
+          or trim(coalesce(english_text, '')) ~ '\s'
+        ) = v_prompt_is_phrase
       order by random()
     loop
       if v_distractor.en_key = any(v_selected_en_keys)
@@ -854,6 +863,36 @@ begin
 
       exit when array_length(v_option_ids, 1) >= 4;
     end loop;
+
+    if array_length(v_option_ids, 1) < 4 then
+      for v_distractor in
+        select
+          id,
+          lower(trim(coalesce(english_text, ''))) as en_key,
+          lower(trim(coalesce(spanish_text, ''))) as es_key,
+          lower(trim(coalesce(portuguese_text, ''))) as pt_key
+        from public.vocabulary
+        where id <> all(v_option_ids)
+          and (
+            coalesce(lower(trim(item_type)), '') = 'phrase'
+            or trim(coalesce(english_text, '')) ~ '\s'
+          ) = v_prompt_is_phrase
+        order by random()
+      loop
+        if v_distractor.en_key = any(v_selected_en_keys)
+           or v_distractor.es_key = any(v_selected_es_keys)
+           or v_distractor.pt_key = any(v_selected_pt_keys) then
+          continue;
+        end if;
+
+        v_option_ids := array_append(v_option_ids, v_distractor.id);
+        v_selected_en_keys := array_append(v_selected_en_keys, v_distractor.en_key);
+        v_selected_es_keys := array_append(v_selected_es_keys, v_distractor.es_key);
+        v_selected_pt_keys := array_append(v_selected_pt_keys, v_distractor.pt_key);
+
+        exit when array_length(v_option_ids, 1) >= 4;
+      end loop;
+    end if;
 
     if array_length(v_option_ids, 1) < 4 then
       for v_distractor in

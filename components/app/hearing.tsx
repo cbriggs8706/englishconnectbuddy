@@ -11,8 +11,8 @@ import { VocabularyItem } from "@/lib/types";
 import { AudioLines, Loader2, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const MIN_SPEED = 0.6;
-const MAX_SPEED = 1.6;
+const MIN_SPEED = 0.4;
+const MAX_SPEED = 1.4;
 const DEFAULT_SPEED = 1;
 const AUTO_NEXT_DELAY_MS = 5000;
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -48,6 +48,12 @@ function wait(ms: number) {
   });
 }
 
+function getLetterGapMs(speed: number) {
+  const normalized = (speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED);
+  const clamped = Math.min(1, Math.max(0, normalized));
+  return 1200 - clamped * 900;
+}
+
 function createConfettiPieces(count = 90): ConfettiPiece[] {
   const colors = ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899"];
   return Array.from({ length: count }, (_, i) => ({
@@ -81,6 +87,7 @@ export function Hearing() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const autoNextTimeoutRef = useRef<number | null>(null);
   const audioCacheRef = useRef<Map<string, string>>(new Map());
+  const activeAudiosRef = useRef<Set<HTMLAudioElement>>(new Set());
   const preloadPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
   const alphabetBackgroundStartedRef = useRef(false);
 
@@ -112,6 +119,11 @@ export function Hearing() {
   useEffect(() => {
     return () => {
       cancelledRef.current = true;
+      for (const audio of activeAudiosRef.current) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      activeAudiosRef.current.clear();
       if (autoNextTimeoutRef.current) {
         window.clearTimeout(autoNextTimeoutRef.current);
       }
@@ -239,16 +251,18 @@ export function Hearing() {
 
         const audioSrc = audioCacheRef.current.get(letter) ?? publicAlphabetUrl(`${letter}.mp3`);
         const audio = new Audio(audioSrc);
-        audio.playbackRate = speed;
+        audio.playbackRate = 1;
+        activeAudiosRef.current.add(audio);
 
-        await new Promise<void>((resolve) => {
-          audio.onended = () => resolve();
-          audio.onerror = () => resolve();
-          void audio.play().catch(() => resolve());
-        });
+        const cleanup = () => {
+          activeAudiosRef.current.delete(audio);
+        };
+        audio.onended = cleanup;
+        audio.onerror = cleanup;
+        void audio.play().catch(() => cleanup());
 
         if (cancelledRef.current) break;
-        await wait(Math.max(70, 240 / speed));
+        await wait(getLetterGapMs(speed));
       }
     } finally {
       if (!cancelledRef.current) {
@@ -264,6 +278,11 @@ export function Hearing() {
       autoNextTimeoutRef.current = null;
     }
     cancelledRef.current = true;
+    for (const audio of activeAudiosRef.current) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    activeAudiosRef.current.clear();
     setIsPlaying(false);
     setAnswer("");
     setResult(null);

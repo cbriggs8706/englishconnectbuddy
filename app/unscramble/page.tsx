@@ -46,6 +46,20 @@ function tokenize(sentence: string) {
   return normalizeSentence(sentence).split(" ").filter(Boolean);
 }
 
+function normalizeButtonToken(token: string) {
+  return token.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+}
+
+function toButtonTokens(sentence: string) {
+  return tokenize(sentence).map(normalizeButtonToken).filter(Boolean);
+}
+
+function sentenceCase(text: string) {
+  const normalized = normalizeSentence(text);
+  if (!normalized) return "";
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
 function shuffleWords(words: string[]) {
   const next = [...words];
   for (let i = next.length - 1; i > 0; i -= 1) {
@@ -189,10 +203,13 @@ export default function UnscramblePage() {
   const current = pendingRounds[index];
   const isLessonComplete = rounds.length > 0 && completedCount >= rounds.length;
 
+  const expectedDisplayTokens = useMemo(() => (current ? tokenize(current.sentence) : []), [current]);
+  const expectedButtonTokens = useMemo(() => (current ? toButtonTokens(current.sentence) : []), [current]);
+
   const options = useMemo(() => {
     if (!current) return [];
-    return shuffleWords(tokenize(current.sentence));
-  }, [current]);
+    return shuffleWords(expectedButtonTokens);
+  }, [current, expectedButtonTokens]);
 
   useEffect(() => {
     setSelected([]);
@@ -213,8 +230,21 @@ export default function UnscramblePage() {
     didPlayLessonCompleteRef.current = false;
   }, [selectedLesson]);
 
-  const builtSentence = selected.join(" ");
-  const isCorrect = Boolean(current) && builtSentence === normalizeSentence(current.sentence);
+  const isCorrect = Boolean(current) && selected.length === expectedButtonTokens.length && selected.every((word, idx) => word === expectedButtonTokens[idx]);
+  const isAttemptLocked = Boolean(current) && selected.length === expectedButtonTokens.length && !isCorrect;
+
+  const previewSentence = useMemo(() => {
+    if (!current || selected.length === 0) return "";
+    if (isCorrect) return normalizeSentence(current.sentence);
+
+    const isPrefix = selected.every((word, idx) => word === expectedButtonTokens[idx]);
+    if (isPrefix) {
+      return sentenceCase(expectedDisplayTokens.slice(0, selected.length).join(" "));
+    }
+
+    return sentenceCase(selected.join(" "));
+  }, [current, expectedButtonTokens, expectedDisplayTokens, isCorrect, selected]);
+
   const selectedCountByWord = useMemo(() => {
     const counts = new Map<string, number>();
     for (const word of selected) {
@@ -343,19 +373,7 @@ export default function UnscramblePage() {
             ) : null}
             <div className="min-h-20 rounded-xl border border-dashed bg-muted/30 p-3 text-sm">
               {selected.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {selected.map((word, idx) => (
-                    <Button
-                      key={`selected-${word}-${idx}`}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelected((prev) => prev.filter((_, itemIdx) => itemIdx !== idx))}
-                    >
-                      {word}
-                    </Button>
-                  ))}
-                </div>
+                <p className="text-base font-semibold text-foreground">{previewSentence}</p>
               ) : (
                 copy.tapWordsBelow
               )}
@@ -368,8 +386,9 @@ export default function UnscramblePage() {
                   type="button"
                   variant="secondary"
                   size="sm"
-                  disabled={isCorrect || (selectedCountByWord.get(word) ?? 0) >= (optionCountByWord.get(word) ?? 0)}
+                  disabled={isCorrect || isAttemptLocked || (selectedCountByWord.get(word) ?? 0) >= (optionCountByWord.get(word) ?? 0)}
                   onClick={() => setSelected((prev) => [...prev, word])}
+                  className={isAttemptLocked ? "opacity-40 blur-[1px]" : undefined}
                 >
                   {word}
                 </Button>
@@ -378,7 +397,12 @@ export default function UnscramblePage() {
 
             <div className="flex gap-2">
               {current.translation && !showHint ? (
-                <Button type="button" onClick={() => setShowHint(true)} className="flex-1">
+                <Button
+                  type="button"
+                  onClick={() => setShowHint(true)}
+                  className={`flex-1 ${isAttemptLocked ? "opacity-40 blur-[1px]" : ""}`}
+                  disabled={isAttemptLocked}
+                >
                   {copy.reveal}
                 </Button>
               ) : null}
@@ -386,9 +410,9 @@ export default function UnscramblePage() {
                 type="button"
                 variant="outline"
                 onClick={() => setSelected([])}
-                className="flex-1"
+                className={`flex-1 ${isAttemptLocked ? "border-0 bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 text-white hover:from-red-700 hover:via-rose-700 hover:to-orange-600" : ""}`}
               >
-                {copy.reset}
+                {isAttemptLocked ? "Try again" : copy.reset}
               </Button>
               <Button
                 type="button"
@@ -396,7 +420,8 @@ export default function UnscramblePage() {
                   setSelected([]);
                   setIndex((prev) => (prev + 1) % Math.max(1, pendingRounds.length));
                 }}
-                className="flex-1"
+                className={`flex-1 ${isAttemptLocked ? "opacity-40 blur-[1px]" : ""}`}
+                disabled={isAttemptLocked}
               >
                 {copy.next}
               </Button>
