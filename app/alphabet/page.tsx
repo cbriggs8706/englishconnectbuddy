@@ -1,10 +1,12 @@
 "use client";
 
 import { AppShell } from "@/components/app/app-shell";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { t } from "@/lib/i18n";
+import { recordStreakActivity } from "@/lib/streak";
 import { cn } from "@/lib/utils";
 import { AudioLines, RotateCcw, ThumbsDown, ThumbsUp, Volume2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -77,6 +79,7 @@ function publicAlphabetUrl(fileName: string) {
 
 export default function AlphabetPage() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const copy = t(language);
   const [stage, setStage] = useState<QuizStage>("study");
   const [secondsPerQuestion, setSecondsPerQuestion] = useState<number>(3);
@@ -232,6 +235,9 @@ export default function AlphabetPage() {
     setPassed(didPass);
     setShowCelebration(didPass);
     setStage("results");
+    if (user) {
+      void recordStreakActivity({ activityType: "quiz" });
+    }
     if (didPass) {
       playSuccessTrumpet();
       setConfettiPieces(createConfettiPieces());

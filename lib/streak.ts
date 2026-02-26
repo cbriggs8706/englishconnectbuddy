@@ -50,10 +50,20 @@ export async function recordStreakLogin() {
   const localDay = getLocalDay();
   const timeZone = getDeviceTimeZone();
 
-  await supabase.rpc("upsert_streak_login", {
+  const { error } = await supabase.rpc("upsert_streak_login", {
     p_local_day: localDay,
     p_time_zone: timeZone,
   });
+
+  if (error) {
+    console.error("recordStreakLogin failed", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw error;
+  }
 }
 
 export async function recordStreakActivity({
@@ -71,13 +81,26 @@ export async function recordStreakActivity({
   const localDay = getLocalDay();
   const timeZone = getDeviceTimeZone();
 
-  const { data } = await supabase.rpc("record_streak_activity", {
+  const { data, error } = await supabase.rpc("record_streak_activity", {
     p_activity_type: activityType,
     p_local_day: localDay,
     p_time_zone: timeZone,
     p_vocab_id: vocabId ?? null,
     p_became_mastered: Boolean(becameMastered),
   });
+
+  if (error) {
+    console.error("recordStreakActivity failed", {
+      activityType,
+      localDay,
+      timeZone,
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    return null;
+  }
 
   return (data as UserStreak | null) ?? null;
 }
@@ -86,10 +109,20 @@ export async function fetchMyStreak() {
   if (!supabaseConfigured()) return null;
 
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_streaks")
     .select("user_id, current_streak, longest_streak, last_qualified_day")
     .maybeSingle();
+
+  if (error) {
+    console.error("fetchMyStreak failed", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    return null;
+  }
 
   return (data as UserStreak | null) ?? null;
 }

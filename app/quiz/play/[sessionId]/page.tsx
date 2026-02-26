@@ -8,11 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { recordStreakActivity } from "@/lib/streak";
-import { QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
+import { Language, QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-const copy = {
+const baseCopy: Record<
+  "en" | "es" | "pt",
+  {
+    title: string;
+    waiting: string;
+    removed: string;
+    finished: string;
+    score: string;
+    you: string;
+    correctAnswer: string;
+    youChose: string;
+    podium: string;
+  }
+> = {
   en: {
     title: "Live Quiz",
     waiting: "Waiting for the teacher to start",
@@ -46,7 +59,26 @@ const copy = {
     youChose: "Voce escolheu",
     podium: "Top 3",
   },
-} as const;
+};
+
+const copy: Record<Language, (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    ...baseCopy.en,
+    title: "Quiz ya moja kwa moja",
+    waiting: "Inasubiri mwalimu aanze",
+    removed: "Umeondolewa na mwalimu.",
+    finished: "Quiz imekwisha",
+    score: "Alama",
+    you: "Wewe",
+    correctAnswer: "Jibu sahihi",
+    youChose: "Umechagua",
+    podium: "3 Bora",
+  },
+  chk: {
+    ...baseCopy.en,
+  },
+};
 
 const optionToneClasses = [
   "bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 text-white border-blue-900",

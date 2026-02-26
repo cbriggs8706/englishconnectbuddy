@@ -5,11 +5,34 @@ import { AdminShell } from "@/components/app/admin-shell";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { t } from "@/lib/i18n";
+import { Language } from "@/lib/types";
 import Link from "next/link";
 
 export default function AdminPage() {
   const { language } = useLanguage();
   const copy = t(language);
+  const priorityPollRouteCopy: Record<Language, { title: string; description: string }> = {
+    en: {
+      title: "Priority Poll Report",
+      description: "View each student's ranked learning priorities.",
+    },
+    es: {
+      title: "Reporte de encuesta de prioridades",
+      description: "Ver las prioridades de aprendizaje ordenadas de cada estudiante.",
+    },
+    pt: {
+      title: "Relatorio da enquete de prioridades",
+      description: "Ver as prioridades de aprendizado ordenadas de cada aluno.",
+    },
+    sw: {
+      title: "Ripoti ya Kura ya Vipaumbele",
+      description: "Tazama vipaumbele vya kujifunza vya kila mwanafunzi vilivyopangwa.",
+    },
+    chk: {
+      title: "Priority Poll Report",
+      description: "View each student's ranked learning priorities.",
+    },
+  };
   const routes = [
     { href: "/admin/lessons", title: copy.addLesson, description: copy.adminManageLessonsDesc, colors: "from-blue-600 to-cyan-500" },
     { href: "/admin/vocab", title: copy.addVocab, description: copy.adminAddVocabDesc, colors: "from-violet-600 to-fuchsia-500" },
@@ -29,18 +52,8 @@ export default function AdminPage() {
     },
     {
       href: "/admin/priority-poll",
-      title:
-        language === "es"
-          ? "Reporte de encuesta de prioridades"
-          : language === "pt"
-            ? "Relatorio da enquete de prioridades"
-            : "Priority Poll Report",
-      description:
-        language === "es"
-          ? "Ver las prioridades de aprendizaje ordenadas de cada estudiante."
-          : language === "pt"
-            ? "Ver as prioridades de aprendizado ordenadas de cada aluno."
-            : "View each student's ranked learning priorities.",
+      title: priorityPollRouteCopy[language].title,
+      description: priorityPollRouteCopy[language].description,
       colors: "from-pink-600 to-rose-500",
     },
     {

@@ -1,7 +1,9 @@
+// locale-check: ignore - this file uses base en/es/pt definitions with runtime fallback resolvers for sw/chk.
 import { Language } from "@/lib/types";
 
-type Localized = Record<Language, string>;
-type LocalizedList = Record<Language, string[]>;
+type BaseLanguage = "en" | "es" | "pt";
+type Localized = Record<BaseLanguage, string>;
+type LocalizedList = Record<BaseLanguage, string[]>;
 
 type PrioritySectionDefinition = {
   key: string;
@@ -526,16 +528,28 @@ const PRIORITY_SECTION_DEFINITIONS: PrioritySectionDefinition[] = [
 export const PRIORITY_SECTION_COUNT = PRIORITY_SECTION_DEFINITIONS.length;
 export const PRIORITY_SECTION_KEYS = PRIORITY_SECTION_DEFINITIONS.map((section) => section.key);
 
+function resolveLocalizedText(localized: Localized, language: Language): string {
+  if (language === "es") return localized.es;
+  if (language === "pt") return localized.pt;
+  return localized.en;
+}
+
+function resolveLocalizedList(localized: LocalizedList, language: Language): string[] {
+  if (language === "es") return localized.es;
+  if (language === "pt") return localized.pt;
+  return localized.en;
+}
+
 export function getPrioritySections(language: Language): PrioritySection[] {
   return PRIORITY_SECTION_DEFINITIONS.map((section) => ({
     key: section.key,
-    title: section.title[language],
-    bestFor: section.bestFor?.[language],
-    bullets: section.bullets[language],
+    title: resolveLocalizedText(section.title, language),
+    bestFor: section.bestFor ? resolveLocalizedText(section.bestFor, language) : undefined,
+    bullets: resolveLocalizedList(section.bullets, language),
   }));
 }
 
 export function getPrioritySectionLabel(sectionKey: string, language: Language): string {
   const section = PRIORITY_SECTION_DEFINITIONS.find((entry) => entry.key === sectionKey);
-  return section?.title[language] ?? sectionKey;
+  return section ? resolveLocalizedText(section.title, language) : sectionKey;
 }

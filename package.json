@@ -5,8 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:locales": "node scripts/check-locale-coverage.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "supabase:login": "supabase login",
+    "supabase:link": "supabase link --project-ref $SUPABASE_PROJECT_REF",
+    "supabase:status": "supabase status",
+    "supabase:db:push": "supabase db push",
+    "supabase:db:pull": "supabase db pull"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

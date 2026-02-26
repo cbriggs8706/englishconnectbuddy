@@ -60,7 +60,7 @@ type LocalCopy = {
   allDone: string;
 };
 
-const copyByLanguage: Record<Language, LocalCopy> = {
+const baseCopyByLanguage: Record<"en" | "es" | "pt", LocalCopy> = {
   en: {
     setupTitle: "Speak",
     setupSubtitle: "See the prompt, speak the English answer, and keep moving.",
@@ -141,6 +141,64 @@ const copyByLanguage: Record<Language, LocalCopy> = {
     needsImageFallback: "Não há imagem. Use esta tradução como pista.",
     nativeLanguageHint: "",
     allDone: "Ótimo trabalho. Iniciando uma nova rodada.",
+  },
+};
+
+const copyByLanguage: Record<Language, LocalCopy> = {
+  ...baseCopyByLanguage,
+  sw: {
+    setupTitle: "Ongea",
+    setupSubtitle: "Ona dokezo, sema jibu la Kiingereza, na endelea.",
+    selectLesson: "Chagua somo",
+    selectType: "Chagua shughuli",
+    start: "Anza",
+    vocabulary: "Msamiati",
+    phrases: "Vifungu",
+    noItems: "Hakuna vipengele kwa somo na shughuli hii bado.",
+    unsupported: "Utambuzi wa sauti haupatikani kwenye kivinjari hiki.",
+    micError: "Hitilafu ya kipaza sauti. Angalia ruhusa na ujaribu tena.",
+    listening: "Inasikiliza...",
+    startListening: "Anza kuongea",
+    stopListening: "Acha",
+    next: "Inayofuata",
+    tryAgain: "Jaribu tena",
+    success: "Sahihi!",
+    incorrect: "Bado siyo. Jaribu tena.",
+    heardYouSay: "Nimesikia",
+    heardNothing: "Sijasikia chochote.",
+    prompt: "Dokezo",
+    sayEnglishWord: "Sema neno la Kiingereza.",
+    sayMissingWord: "Sema neno la Kiingereza lililokosekana.",
+    needsImageFallback: "Hakuna picha. Tumia dokezo hili la tafsiri.",
+    nativeLanguageHint: "Chagua lugha yako ya asili kwa kubofya kitufe juu.",
+    allDone: "Kazi nzuri. Raundi mpya inaanza.",
+  },
+  chk: {
+    setupTitle: "Speak",
+    setupSubtitle: "See the prompt, speak the English answer, and keep moving.",
+    selectLesson: "Select lesson",
+    selectType: "Choose activity",
+    start: "Start",
+    vocabulary: "Vocabulary",
+    phrases: "Phrases",
+    noItems: "No items found for this lesson and activity yet.",
+    unsupported: "Speech recognition is not supported in this browser.",
+    micError: "Microphone error. Check browser permission and try again.",
+    listening: "Listening...",
+    startListening: "Start Speaking",
+    stopListening: "Stop",
+    next: "Next",
+    tryAgain: "Try Again",
+    success: "Correct!",
+    incorrect: "Not quite. Try again.",
+    heardYouSay: "I heard",
+    heardNothing: "I didn't hear anything.",
+    prompt: "Prompt",
+    sayEnglishWord: "Speak the English word.",
+    sayMissingWord: "Speak the missing English word.",
+    needsImageFallback: "No image available. Use this translation prompt.",
+    nativeLanguageHint: "Choose your native language by clicking the button at the top.",
+    allDone: "Great work. Starting a new round.",
   },
 };
 
@@ -295,6 +353,8 @@ function playErrorDrum() {
 function chooseTranslation(item: VocabularyItem, language: Language) {
   if (language === "es") return item.spanish_text;
   if (language === "pt") return item.portuguese_text;
+  if (language === "sw") return item.english_text;
+  if (language === "chk") return item.english_text;
   return item.spanish_text || item.portuguese_text;
 }
 

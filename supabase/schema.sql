@@ -8,7 +8,7 @@ create table if not exists public.profiles (
   last_name text,
   nickname text,
   selected_course text not null default 'EC1',
-  native_language text check (native_language in ('en', 'es', 'pt')),
+  native_language text check (native_language in ('en', 'es', 'pt', 'sw', 'chk')),
   is_admin boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -127,6 +127,12 @@ create table if not exists public.phrases (
   spa text not null,
   por text not null,
   eng_audio text,
+  pattern_slot smallint,
+  kind text,
+  template_en text,
+  template_es text,
+  template_pt text,
+  swap_groups jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -134,6 +140,19 @@ create table if not exists public.phrases (
 create index if not exists phrases_course_lesson_idx on public.phrases (course, lesson);
 create unique index if not exists phrases_course_lesson_eng_spa_por_unique_idx
 on public.phrases (course, lesson, eng, spa, por);
+create unique index if not exists phrases_course_lesson_pattern_kind_unique_idx
+on public.phrases (course, lesson, pattern_slot, kind);
+create index if not exists phrases_conversation_lookup_idx
+on public.phrases (course, lesson, pattern_slot, kind, updated_at desc);
+alter table public.phrases drop constraint if exists phrases_pattern_slot_ck;
+alter table public.phrases add constraint phrases_pattern_slot_ck
+check (pattern_slot is null or pattern_slot in (1, 2));
+alter table public.phrases drop constraint if exists phrases_kind_ck;
+alter table public.phrases add constraint phrases_kind_ck
+check (kind is null or kind in ('question', 'answer'));
+alter table public.phrases drop constraint if exists phrases_swap_groups_is_array_ck;
+alter table public.phrases add constraint phrases_swap_groups_is_array_ck
+check (jsonb_typeof(swap_groups) = 'array');
 
 create table if not exists public.sentence_scrambles (
   id uuid primary key default gen_random_uuid(),

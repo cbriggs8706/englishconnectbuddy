@@ -92,9 +92,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const cacheKey = `ecb-streak-login:${user.id}:${day}`;
     if (localStorage.getItem(cacheKey) === "1") return;
 
-    void recordStreakLogin().finally(() => {
-      localStorage.setItem(cacheKey, "1");
-    });
+    void recordStreakLogin()
+      .then(() => {
+        localStorage.setItem(cacheKey, "1");
+      })
+      .catch(() => {
+        // Keep retrying later this same day if the write fails.
+      });
   }, [user?.id]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

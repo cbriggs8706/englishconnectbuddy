@@ -11,8 +11,8 @@ import { Language } from "@/lib/types";
 import { PRIORITY_SECTION_COUNT, PRIORITY_SECTION_KEYS, getPrioritySections } from "@/lib/priority-poll";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 
-const copy: Record<
-  Language,
+const baseCopy: Record<
+  "en" | "es" | "pt",
   {
     loading: string;
     signInTitle: string;
@@ -89,6 +89,33 @@ const copy: Record<
     saveFailed: "Nao foi possivel salvar a ordem. Tente novamente.",
     saveSuccess: "Ordem de prioridades salva.",
     supabaseMissing: "As variaveis de ambiente do Supabase estao ausentes.",
+  },
+};
+
+const copy: Record<Language, (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    ...baseCopy.en,
+    loading: "Inapakia kura...",
+    signInTitle: "Ingia kujaza kura ya vipaumbele",
+    signInBody: "Buruta na udondoshe sehemu ili kupanga yaliyo muhimu zaidi kwako.",
+    goToProfile: "Nenda Wasifu",
+    title: "Kura ya Vipaumbele vya Kujifunza",
+    subtitle: "Weka sehemu muhimu zaidi juu. Panga sehemu zote.",
+    tip: "Dokezo: Unaweza kuburuta kadi au kutumia Panda / Shusha kwa udhibiti rahisi.",
+    ranked: "Zimepangwa",
+    moveUp: "Panda",
+    moveDown: "Shusha",
+    bestFor: "Inafaa kwa",
+    save: "Hifadhi mpangilio wa vipaumbele",
+    saving: "Inahifadhi...",
+    signInFirst: "Tafadhali ingia kwanza ili kuhifadhi mpangilio wako.",
+    saveFailed: "Imeshindwa kuhifadhi. Jaribu tena.",
+    saveSuccess: "Mpangilio umehifadhiwa.",
+    supabaseMissing: "Vigezo vya mazingira vya Supabase havipo.",
+  },
+  chk: {
+    ...baseCopy.en,
   },
 };
 

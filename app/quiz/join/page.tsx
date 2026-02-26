@@ -8,10 +8,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { quizDisplayName, getOrCreateGuestToken, nicknameAllowed, normalizeJoinCode } from "@/lib/quiz";
 import { createClient } from "@/lib/supabase/client";
+import { Language } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 
-const copy = {
+const baseCopy: Record<
+  "en" | "es" | "pt",
+  {
+    title: string;
+    joinCode: string;
+    nickname: string;
+    join: string;
+    badNickname: string;
+  }
+> = {
   en: {
     title: "Join Live Quiz",
     joinCode: "Join code",
@@ -33,7 +43,22 @@ const copy = {
     join: "Entrar",
     badNickname: "Escolha outro apelido.",
   },
-} as const;
+};
+
+const copy: Record<Language, (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    ...baseCopy.en,
+    title: "Jiunge na Quiz ya moja kwa moja",
+    joinCode: "Msimbo wa kujiunga",
+    nickname: "Jina la utani",
+    join: "Jiunge na quiz",
+    badNickname: "Tafadhali chagua jina tofauti.",
+  },
+  chk: {
+    ...baseCopy.en,
+  },
+};
 
 function QuizJoinContent() {
   const { language } = useLanguage();

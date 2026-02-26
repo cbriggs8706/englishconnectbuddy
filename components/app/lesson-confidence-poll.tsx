@@ -14,8 +14,8 @@ import { Language } from "@/lib/types";
 
 type ConfidenceMap = Record<string, number>;
 
-const topCopy: Record<
-  Language,
+const baseTopCopy: Record<
+  "en" | "es" | "pt",
   {
     signInTitle: string;
     signInBody: string;
@@ -56,6 +56,23 @@ const topCopy: Record<
     courseNotSelected: "Nao selecionado",
     rateHelp: "Avalie cada licao de 0 (sem confianca) a 5 (muito confiante).",
     answeredLabel: "Respondidas",
+  },
+};
+
+const topCopy: Record<Language, (typeof baseTopCopy)["en"]> = {
+  ...baseTopCopy,
+  sw: {
+    signInTitle: "Ingia kujaza kura ya kujiamini",
+    signInBody: "Tunatunza alama moja ya kujiamini 0-5 kwa kila somo katika kozi uliyochagua.",
+    profileCta: "Nenda Wasifu",
+    cardTitle: "Kura ya Kujiamini kwa Somo",
+    courseLabel: "Kozi",
+    courseNotSelected: "Haijachaguliwa",
+    rateHelp: "Pima kila somo kutoka 0 (si na kujiamini) hadi 5 (na kujiamini sana).",
+    answeredLabel: "Yaliyojibiwa",
+  },
+  chk: {
+    ...baseTopCopy.en,
   },
 };
 

@@ -199,6 +199,8 @@ export default function FlashcardsPage() {
     if (!current) return "";
     if (language === "es") return current.spanish_text;
     if (language === "pt") return current.portuguese_text;
+    if (language === "sw") return current.english_text;
+    if (language === "chk") return current.english_text;
     return current.english_text;
   }
 

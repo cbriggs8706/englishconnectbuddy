@@ -27,6 +27,8 @@ type PhraseRow = {
   id: string;
   course: string;
   lesson: number;
+  pattern_slot: number | null;
+  kind: "question" | "answer" | null;
   eng: string;
   spa: string;
   por: string;
@@ -101,6 +103,8 @@ async function fetchAllPhrases() {
     const { data, error } = await supabase
       .from("phrases")
       .select("*")
+      .is("pattern_slot", null)
+      .is("kind", null)
       .order("course", { ascending: true })
       .order("lesson", { ascending: true })
       .order("eng", { ascending: true })

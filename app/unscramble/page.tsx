@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { lessonLabel } from "@/lib/content";
 import { t } from "@/lib/i18n";
+import { recordStreakActivity } from "@/lib/streak";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type PhraseRound = {
@@ -108,7 +109,7 @@ export default function UnscramblePage() {
   const { language } = useLanguage();
   const copy = t(language);
   const { lessons, vocab } = useCurriculum();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const selectedCourse = profile?.selected_course ?? null;
 
   const [selectedLesson, setSelectedLesson] = useState<string>("");
@@ -143,7 +144,11 @@ export default function UnscramblePage() {
             ? item.spanish_text
             : language === "pt"
               ? item.portuguese_text
-              : item.english_text,
+              : language === "sw"
+                ? item.english_text
+                : language === "chk"
+                  ? item.english_text
+                  : item.english_text,
       }))
       .filter((item) => tokenize(item.sentence).length > 1);
   }, [language, lessonLabelsById, lessons, selectedCourse, vocab]);
@@ -243,6 +248,9 @@ export default function UnscramblePage() {
   useEffect(() => {
     if (!isLessonComplete || didPlayLessonCompleteRef.current) return;
     didPlayLessonCompleteRef.current = true;
+    if (user) {
+      void recordStreakActivity({ activityType: "matching" });
+    }
     playSuccessTrumpet();
     setConfettiPieces(createConfettiPieces());
     setShowConfetti(true);
@@ -251,7 +259,7 @@ export default function UnscramblePage() {
       setConfettiPieces([]);
     }, 2600);
     return () => window.clearTimeout(timeout);
-  }, [isLessonComplete]);
+  }, [isLessonComplete, user]);
 
   return (
     <AppShell title={copy.unscramble}>

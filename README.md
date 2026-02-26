@@ -69,6 +69,41 @@ set is_admin = true
 where id = 'YOUR-USER-UUID';
 ```
 
+## Supabase CLI (recommended for migrations)
+
+Supabase CLI is already supported in this repo (`supabase/` + `supabase/migrations`).
+
+1. Log in once:
+
+```bash
+pnpm supabase:login
+```
+
+2. Set your project ref (from Supabase dashboard URL, e.g. `https://supabase.com/dashboard/project/<ref>`):
+
+```bash
+export SUPABASE_PROJECT_REF=your-project-ref
+```
+
+3. Link this repo to that project:
+
+```bash
+pnpm supabase:link
+```
+
+4. Push pending migrations (including streak tables/functions):
+
+```bash
+pnpm supabase:db:push
+```
+
+Useful checks:
+
+```bash
+pnpm supabase:status
+pnpm supabase:db:pull
+```
+
 ## Run
 
 ```bash

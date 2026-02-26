@@ -18,6 +18,14 @@ const shellCopy: Record<Language, { title: string; subtitle: string }> = {
     title: "Enquete de prioridades de aprendizado",
     subtitle: "Arraste e solte para ordenar seus objetivos",
   },
+  sw: {
+    title: "Kura ya Vipaumbele vya Kujifunza",
+    subtitle: "Buruta na udondoshe kupanga malengo yako",
+  },
+  chk: {
+    title: "Learning Priorities Poll",
+    subtitle: "Drag and drop to rank your goals",
+  },
 };
 
 export default function PriorityPollPage() {

@@ -10,6 +10,8 @@ const subtitleByLanguage: Record<Language, string> = {
   en: "Say the English word for each prompt.",
   es: "Di la palabra en inglés para cada pista.",
   pt: "Diga a palavra em inglês para cada pista.",
+  sw: "Sema neno la Kiingereza kwa kila dokezo.",
+  chk: "Say the English word for each prompt.",
 };
 
 export default function SpeakPage() {

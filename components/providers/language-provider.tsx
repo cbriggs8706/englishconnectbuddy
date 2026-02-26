@@ -14,7 +14,7 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 const LOCAL_STORAGE_KEY = "ecb-language";
 
 function isLanguage(value: string | null): value is Language {
-  return value === "en" || value === "es" || value === "pt";
+  return value === "en" || value === "es" || value === "pt" || value === "sw" || value === "chk";
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {

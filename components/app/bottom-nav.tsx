@@ -21,6 +21,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
+import { Language } from "@/lib/types";
 
 const primaryNav = [
   { href: "/", key: "home", icon: Home },
@@ -28,6 +29,14 @@ const primaryNav = [
   { href: "/match", key: "matching", icon: Shuffle },
   { href: "/quiz", key: "liveQuiz", icon: Trophy },
 ] as const;
+
+const priorityPollLabelByLanguage: Record<Language, string> = {
+  en: "Priority Poll",
+  es: "Encuesta de prioridades",
+  pt: "Enquete de prioridades",
+  sw: "Priority Poll",
+  chk: "Priority Poll",
+};
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -52,7 +61,7 @@ export function BottomNav() {
       { href: "/quiz", label: copy.liveQuiz, icon: Trophy },
       { href: "/dictionary", label: copy.dictionary, icon: BookOpen },
       { href: "/confidence-poll", label: "Confidence Poll", icon: ClipboardList },
-      { href: "/priority-poll", label: language === "es" ? "Encuesta de prioridades" : language === "pt" ? "Enquete de prioridades" : "Priority Poll", icon: ClipboardList },
+      { href: "/priority-poll", label: priorityPollLabelByLanguage[language], icon: ClipboardList },
       { href: "/progress", label: copy.progress, icon: ChartNoAxesColumn },
       { href: "/leaderboard", label: copy.leaderboard, icon: Trophy },
       { href: "/volunteer", label: copy.volunteer, icon: Users },

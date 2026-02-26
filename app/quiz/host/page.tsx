@@ -11,12 +11,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { lessonLabel } from "@/lib/content";
 import { createClient } from "@/lib/supabase/client";
-import { QuizSession } from "@/lib/types";
+import { Language, QuizSession } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const copy = {
+const baseCopy: Record<
+  "en" | "es" | "pt",
+  {
+    title: string;
+    lesson: string;
+    count: string;
+    duration: string;
+    start: string;
+    chooseAtLeastOne: string;
+    openQuizzes: string;
+    noOpenQuizzes: string;
+    createdBy: string;
+    unknownHost: string;
+    you: string;
+    open: string;
+    close: string;
+    closing: string;
+  }
+> = {
   en: {
     title: "Host Live Quiz",
     lesson: "Lessons",
@@ -65,7 +83,31 @@ const copy = {
     close: "Encerrar",
     closing: "Encerrando...",
   },
-} as const;
+};
+
+const copy: Record<Language, (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    ...baseCopy.en,
+    title: "Simamia Quiz ya moja kwa moja",
+    lesson: "Masomo",
+    count: "Idadi ya maswali",
+    duration: "Sekunde kwa swali",
+    start: "Tengeneza quiz",
+    chooseAtLeastOne: "Chagua angalau somo moja.",
+    openQuizzes: "Quiz zilizo wazi",
+    noOpenQuizzes: "Hakuna quiz zilizo wazi sasa.",
+    createdBy: "Imeundwa na",
+    unknownHost: "Haijulikani",
+    you: "wewe",
+    open: "Fungua",
+    close: "Funga",
+    closing: "Inafunga...",
+  },
+  chk: {
+    ...baseCopy.en,
+  },
+};
 
 export default function QuizHostSetupPage() {
   const { language } = useLanguage();

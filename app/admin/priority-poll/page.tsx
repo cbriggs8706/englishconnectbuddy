@@ -26,8 +26,8 @@ type PriorityRow = {
   updated_at: string;
 };
 
-const copy: Record<
-  Language,
+const baseCopy: Record<
+  "en" | "es" | "pt",
   {
     shellTitle: string;
     shellSubtitle: string;
@@ -80,6 +80,26 @@ const copy: Record<
     noSubmission: "Este aluno ainda nao enviou esta enquete.",
     supabaseMissing: "As variaveis de ambiente do Supabase estao ausentes.",
     loadError: "Nao foi possivel carregar os dados de prioridades. Verifique permissoes de admin.",
+  },
+};
+
+const copy: Record<Language, (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    shellTitle: "Admin: Kura ya Vipaumbele",
+    shellSubtitle: "Angalia vipaumbele vya kujifunza vya wanafunzi kwa mpangilio",
+    loading: "Inapakia data ya vipaumbele vya wanafunzi...",
+    cardTitle: "Ripoti ya Kura ya Vipaumbele vya Wanafunzi",
+    savedRows: "Mistari iliyohifadhiwa",
+    students: "Wanafunzi",
+    ranked: "yamepangwa",
+    noResponse: "Hakuna jibu",
+    noSubmission: "Mwanafunzi huyu bado hajawasilisha kura hii.",
+    supabaseMissing: "Vigezo vya mazingira vya Supabase havipo.",
+    loadError: "Haikuwezekana kupakia data ya kura ya vipaumbele. Angalia ruhusa za admin na ujaribu tena.",
+  },
+  chk: {
+    ...baseCopy.en,
   },
 };
 

@@ -47,5 +47,7 @@ export function quizWord(item: {
 }, language: Language) {
   if (language === "es") return item.spanish_text;
   if (language === "pt") return item.portuguese_text;
+  if (language === "sw") return item.english_text;
+  if (language === "chk") return item.english_text;
   return item.english_text;
 }

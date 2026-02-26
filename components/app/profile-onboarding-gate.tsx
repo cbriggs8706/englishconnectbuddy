@@ -11,7 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const copy = {
+const baseCopy: Record<
+  "en" | "es" | "pt",
+  {
+    title: string;
+    subtitle: string;
+    firstName: string;
+    lastName: string;
+    nickname: string;
+    course: string;
+    save: string;
+    error: string;
+  }
+> = {
   en: {
     title: "Complete your profile",
     subtitle: "Please add your first name, last name, nickname, and course before continuing.",
@@ -42,7 +54,24 @@ const copy = {
     save: "Salvar",
     error: "Nao foi possivel salvar seu perfil.",
   },
-} as const;
+};
+
+const copy: Record<"en" | "es" | "pt" | "sw" | "chk", (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    title: "Kamilisha wasifu wako",
+    subtitle: "Tafadhali ongeza jina la kwanza, jina la mwisho, jina la utani, na kozi kabla ya kuendelea.",
+    firstName: "Jina la kwanza",
+    lastName: "Jina la mwisho",
+    nickname: "Jina la utani",
+    course: "Kozi",
+    save: "Hifadhi",
+    error: "Haikuwezekana kuhifadhi wasifu wako.",
+  },
+  chk: {
+    ...baseCopy.en,
+  },
+};
 
 export function ProfileOnboardingGate() {
   const { user, loading, profile, refreshProfile } = useAuth();

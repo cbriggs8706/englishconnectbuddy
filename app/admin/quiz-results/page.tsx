@@ -8,15 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
-import { QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
+import { Language, QuizAnswer, QuizParticipant, QuizQuestion, QuizSession, VocabularyItem } from "@/lib/types";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useMemo, useState } from "react";
 
-const copy = {
+const baseCopy: Record<"en" | "es" | "pt", { title: string; load: string; sessionId: string; accuracy: string }> = {
   en: { title: "Quiz Results", load: "Load", sessionId: "Session ID", accuracy: "Accuracy" },
   es: { title: "Resultados del quiz", load: "Cargar", sessionId: "ID de sesion", accuracy: "Precision" },
   pt: { title: "Resultados do quiz", load: "Carregar", sessionId: "ID da sessao", accuracy: "Precisao" },
-} as const;
+};
+
+const copy: Record<Language, { title: string; load: string; sessionId: string; accuracy: string }> = {
+  ...baseCopy,
+  sw: { title: "Matokeo ya Quiz", load: "Pakia", sessionId: "Kitambulisho cha kipindi", accuracy: "Usahihi" },
+  chk: {
+    title: "Quiz Results",
+    load: "Load",
+    sessionId: "Session ID",
+    accuracy: "Accuracy",
+  },
+};
 
 function QuizResultsContent() {
   const { language } = useLanguage();

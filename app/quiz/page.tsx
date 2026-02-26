@@ -8,12 +8,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { normalizeJoinCode } from "@/lib/quiz";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
-import { QuizSession } from "@/lib/types";
+import { Language, QuizSession } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const copy = {
+const baseCopy: Record<
+  "en" | "es" | "pt",
+  {
+    title: string;
+    subtitle: string;
+    host: string;
+    joinByCode: string;
+    codePlaceholder: string;
+    join: string;
+    activeQuizzes: string;
+    none: string;
+    open: string;
+  }
+> = {
   en: {
     title: "Live Quiz",
     subtitle: "Kahoot-style vocabulary challenge",
@@ -47,7 +60,26 @@ const copy = {
     none: "Nao ha quizzes ao vivo agora.",
     open: "Abrir",
   },
-} as const;
+};
+
+const copy: Record<Language, (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    ...baseCopy.en,
+    title: "Quiz ya moja kwa moja",
+    subtitle: "Changamoto ya msamiati kama Kahoot",
+    host: "Simamia quiz",
+    joinByCode: "Jiunge kwa msimbo",
+    codePlaceholder: "Weka msimbo wa kujiunga",
+    join: "Jiunge",
+    activeQuizzes: "Quiz zinazoendelea",
+    none: "Hakuna quiz ya moja kwa moja sasa.",
+    open: "Fungua",
+  },
+  chk: {
+    ...baseCopy.en,
+  },
+};
 
 export default function QuizHomePage() {
   const { language } = useLanguage();

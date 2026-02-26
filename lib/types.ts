@@ -1,4 +1,4 @@
-export type Language = "en" | "es" | "pt";
+export type Language = "en" | "es" | "pt" | "sw" | "chk";
 export type FlashcardMode =
   | "image-audio"
   | "image-text"

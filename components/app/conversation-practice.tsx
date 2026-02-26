@@ -67,7 +67,7 @@ type LocalCopy = {
   };
 };
 
-const copyByLanguage: Record<Language, LocalCopy> = {
+const baseCopyByLanguage: Record<"en" | "es" | "pt", LocalCopy> = {
   en: {
     title: "Conversation",
     subtitle: "Listen to the question, then speak your response clearly.",
@@ -172,6 +172,52 @@ const copyByLanguage: Record<Language, LocalCopy> = {
       likeToVerb: "Depois de \"like\", use \"to + verbo\" ou \"verbo + ing\" (ex.: \"like to sing\").",
       negativeNeedsAux: "Use auxiliar nas negativas (\"don't/doesn't\") em vez de \"no\" direto.",
     },
+  },
+};
+
+const copyByLanguage: Record<Language, LocalCopy> = {
+  ...baseCopyByLanguage,
+  sw: {
+    title: "Mazungumzo",
+    subtitle: "Sikiliza swali, kisha sema jibu lako wazi.",
+    pickLesson: "Chagua somo",
+    askQuestion: "Uliza swali",
+    startSpeaking: "Anza kuongea",
+    stopListening: "Acha kusikiliza",
+    nextPrompt: "Kidokezo kinachofuata",
+    promptLabel: "Kifungu cha swali",
+    youSaid: "Umesema",
+    noPhrases: "Hakuna vifungu vya swali kwa somo hili bado.",
+    unsupported: "Utambuzi wa sauti haupatikani kwenye kivinjari hiki.",
+    micError: "Kipaza sauti hakikuweza kunasa sauti. Angalia ruhusa ya kipaza sauti.",
+    tries: "Majaribio",
+    accepted: "Yaliyokubaliwa",
+    accuracy: "Usahihi",
+    speakHint: "Gusa Uliza swali kusikia. Kisha gusa Anza kuongea na ujibu kwa Kiingereza.",
+    responseHint: "Dokezo: zingatia sarufi na mpangilio wa maneno ya Kiingereza.",
+    keepGoing: ["Matamshi mazuri!", "Uwazi bora!", "Kazi nzuri kuongea kwa ujasiri!", "Jibu zuri!"],
+    corrections: baseCopyByLanguage.en.corrections,
+  },
+  chk: {
+    title: "Conversation",
+    subtitle: "Listen to the question, then speak your response clearly.",
+    pickLesson: "Select lesson",
+    askQuestion: "Ask Question",
+    startSpeaking: "Start Speaking",
+    stopListening: "Stop Listening",
+    nextPrompt: "Next Prompt",
+    promptLabel: "Question phrase",
+    youSaid: "You said",
+    noPhrases: "No question phrases found for this lesson yet.",
+    unsupported: "Speech recognition is not available in this browser.",
+    micError: "Microphone could not capture speech. Check browser microphone permission.",
+    tries: "Tries",
+    accepted: "Accepted",
+    accuracy: "Accuracy",
+    speakHint: "Tap Ask Question to hear it. Then tap Start Speaking and respond in English.",
+    responseHint: "Tip: focus on English grammar and word order.",
+    keepGoing: ["Great pronunciation!", "Excellent clarity!", "Nice job speaking confidently!", "Strong response!"],
+    corrections: baseCopyByLanguage.en.corrections,
   },
 };
 

@@ -14,7 +14,29 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-const copy = {
+const baseCopy: Record<
+  "en" | "es" | "pt",
+  {
+    title: string;
+    joinCode: string;
+    start: string;
+    next: string;
+    end: string;
+    waiting: string;
+    noImage: string;
+    participants: string;
+    remove: string;
+    review: string;
+    podium: string;
+    questionTime: string;
+    updating: string;
+    showQr: string;
+    hideQr: string;
+    closeSession: string;
+    closing: string;
+    home: string;
+  }
+> = {
   en: {
     title: "Live Quiz Host",
     joinCode: "Join code",
@@ -75,7 +97,35 @@ const copy = {
     closing: "Encerrando...",
     home: "Voltar ao inicio",
   },
-} as const;
+};
+
+const copy: Record<Language, (typeof baseCopy)["en"]> = {
+  ...baseCopy,
+  sw: {
+    ...baseCopy.en,
+    title: "Msimamizi wa Quiz ya moja kwa moja",
+    joinCode: "Msimbo wa kujiunga",
+    start: "Anzisha quiz",
+    next: "Swali linalofuata",
+    end: "Maliza quiz",
+    waiting: "Inasubiri kuanza",
+    noImage: "Hakuna picha kwa swali hili",
+    participants: "Washiriki",
+    remove: "Ondoa",
+    review: "Kagua majibu",
+    podium: "Washindi",
+    questionTime: "Muda wa swali",
+    updating: "Inasasisha...",
+    showQr: "Onyesha QR",
+    hideQr: "Ficha QR",
+    closeSession: "Funga kipindi",
+    closing: "Inafunga...",
+    home: "Rudi nyumbani",
+  },
+  chk: {
+    ...baseCopy.en,
+  },
+};
 
 function optionLabel(item: VocabularyItem) {
   return item.english_text;

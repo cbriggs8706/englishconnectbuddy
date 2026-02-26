@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { t } from "@/lib/i18n";
 import { fetchMyStreak } from "@/lib/streak";
-import { UserStreak } from "@/lib/types";
+import { Language, UserStreak } from "@/lib/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,12 +21,14 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const { language } = useLanguage();
   const copy = t(language);
-  const speakDescription =
-    language === "es"
-      ? "Habla la respuesta en inglés usando imagen, traducción o frase incompleta."
-      : language === "pt"
-        ? "Fale a resposta em inglês usando imagem, tradução ou frase incompleta."
-        : "Speak the English answer from an image, translation, or cloze phrase.";
+  const speakDescriptionByLanguage: Record<Language, string> = {
+    en: "Speak the English answer from an image, translation, or cloze phrase.",
+    es: "Habla la respuesta en inglés usando imagen, traducción o frase incompleta.",
+    pt: "Fale a resposta em inglês usando imagem, tradução ou frase incompleta.",
+    sw: "Sema jibu la Kiingereza ukitumia picha, tafsiri, au kishazi chenye pengo.",
+    chk: "Fos ewe answer non Merika seni pichcha, translation, ika cloze phrase.",
+  };
+  const speakDescription = speakDescriptionByLanguage[language];
   const { lessons, vocab } = useCurriculum();
   const { user, profile } = useAuth();
   const router = useRouter();
@@ -66,7 +68,7 @@ export default function Home() {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-base font-semibold">{copy.progress}</p>
                 <Badge variant="secondary" className="rounded-full bg-white text-lime-700">
-                  {progressLessonCount} lessons
+                  {progressLessonCount} {copy.lesson}
                 </Badge>
               </div>
               <p className="text-base text-lime-50">{copy.optionalLogin}</p>

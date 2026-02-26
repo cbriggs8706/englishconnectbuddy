@@ -18,6 +18,14 @@ const shellCopy: Record<Language, { title: string; subtitle: string }> = {
     title: "Enquete de confianca",
     subtitle: "Avalie sua confianca em cada licao",
   },
+  sw: {
+    title: "Kura ya Kujiamini",
+    subtitle: "Pima kujiamini kwako kwa kila somo",
+  },
+  chk: {
+    title: "Confidence Poll",
+    subtitle: "Rate your confidence for each lesson",
+  },
 };
 
 export default function ConfidencePollPage() {

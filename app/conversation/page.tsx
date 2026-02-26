@@ -1,21 +1,24 @@
 "use client";
 
 import { AppShell } from "@/components/app/app-shell";
-import { ConversationPractice } from "@/components/app/conversation-practice";
+import { ConversationBuddy } from "@/components/app/conversation-buddy";
 import { useLanguage } from "@/components/providers/language-provider";
-import { Language } from "@/lib/types";
 
-const titleByLanguage: Record<Language, string> = {
-  en: "Conversation",
-  es: "Conversación",
-  pt: "Conversa",
+const titleByLanguage: Record<string, string> = {
+  en: "Conversation Buddy",
+  es: "Conversation Buddy",
+  pt: "Conversation Buddy",
+  sw: "Conversation Buddy",
+  chk: "Conversation Buddy",
 };
 
 export default function ConversationPage() {
   const { language } = useLanguage();
+  const title = titleByLanguage[language] ?? titleByLanguage.en;
+
   return (
-    <AppShell title={titleByLanguage[language]}>
-      <ConversationPractice />
+    <AppShell title={title}>
+      <ConversationBuddy />
     </AppShell>
   );
 }
