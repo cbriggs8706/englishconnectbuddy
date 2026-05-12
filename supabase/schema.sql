@@ -10,6 +10,9 @@ create table if not exists public.profiles (
   selected_course text not null default 'EC1',
   native_language text check (native_language in ('en', 'es', 'pt', 'sw', 'chk')),
   is_admin boolean not null default false,
+  ordinals_perfect_streak integer not null default 0,
+  has_ordinals_medal boolean not null default false,
+  ordinals_medal_awarded_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -17,6 +20,9 @@ alter table public.profiles add column if not exists real_name text;
 alter table public.profiles add column if not exists last_name text;
 alter table public.profiles add column if not exists nickname text;
 alter table public.profiles add column if not exists selected_course text;
+alter table public.profiles add column if not exists ordinals_perfect_streak integer not null default 0;
+alter table public.profiles add column if not exists has_ordinals_medal boolean not null default false;
+alter table public.profiles add column if not exists ordinals_medal_awarded_at timestamptz;
 update public.profiles set selected_course = 'EC1' where selected_course is null or trim(selected_course) = '';
 alter table public.profiles alter column selected_course set default 'EC1';
 alter table public.profiles alter column selected_course set not null;
@@ -101,6 +107,7 @@ create table if not exists public.words (
   id uuid primary key default gen_random_uuid(),
   course text not null,
   lesson integer not null check (lesson >= 1),
+  sort_order integer,
   eng text not null,
   spa text not null,
   por text not null,
@@ -116,6 +123,7 @@ create table if not exists public.words (
 );
 
 create index if not exists words_course_lesson_idx on public.words (course, lesson);
+create index if not exists words_course_lesson_sort_order_idx on public.words (course, lesson, sort_order);
 create unique index if not exists words_course_lesson_eng_spa_por_unique_idx
 on public.words (course, lesson, eng, spa, por);
 
@@ -297,6 +305,54 @@ drop trigger if exists prevent_profile_admin_flag_change on public.profiles;
 create trigger prevent_profile_admin_flag_change
 before update on public.profiles
 for each row execute function public.prevent_profile_admin_flag_change();
+
+create or replace function public.record_ordinals_round(
+  p_was_perfect boolean
+)
+returns public.profiles
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_profile public.profiles%rowtype;
+  v_next_streak integer;
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required';
+  end if;
+
+  insert into public.profiles (id, selected_course)
+  values (v_user_id, 'EC1')
+  on conflict (id) do nothing;
+
+  select *
+  into v_profile
+  from public.profiles
+  where id = v_user_id
+  for update;
+
+  if p_was_perfect then
+    v_next_streak := coalesce(v_profile.ordinals_perfect_streak, 0) + 1;
+  else
+    v_next_streak := 0;
+  end if;
+
+  update public.profiles
+  set ordinals_perfect_streak = v_next_streak,
+      has_ordinals_medal = has_ordinals_medal or v_next_streak >= 5,
+      ordinals_medal_awarded_at = case
+        when ordinals_medal_awarded_at is not null then ordinals_medal_awarded_at
+        when has_ordinals_medal or v_next_streak < 5 then ordinals_medal_awarded_at
+        else now()
+      end
+  where id = v_user_id
+  returning * into v_profile;
+
+  return v_profile;
+end;
+$$;
 
 create or replace function public.is_admin(uid uuid)
 returns boolean
@@ -1442,6 +1498,7 @@ grant execute on function public.quiz_advance_session(uuid, text) to authenticat
 grant execute on function public.quiz_set_question_duration(uuid, integer) to authenticated;
 grant execute on function public.quiz_close_current_question(uuid) to authenticated;
 grant execute on function public.quiz_remove_participant(uuid, uuid) to authenticated;
+grant execute on function public.record_ordinals_round(boolean) to authenticated;
 
 do $$
 begin

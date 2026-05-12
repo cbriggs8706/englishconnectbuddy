@@ -29,6 +29,14 @@ export default function Home() {
     chk: "Fos ewe answer non Merika seni pichcha, translation, ika cloze phrase.",
   };
   const speakDescription = speakDescriptionByLanguage[language];
+  const newVocabDescriptionByLanguage: Record<Language, string> = {
+    en: "Show one lesson word at a time with a giant image, Spanish text, and audio.",
+    es: "Muestra una palabra de la lección a la vez con imagen grande, texto en español y audio.",
+    pt: "Mostre uma palavra da lição por vez com imagem grande, texto em espanhol e áudio.",
+    sw: "Onyesha neno moja la somo kwa wakati mmoja na picha kubwa, maandishi ya Kihispania, na sauti.",
+    chk: "Pwisin noun lesson emon ew fansoun me ew fansoun ngeni pichcha watte, kapasin Spanish, me audio.",
+  };
+  const newVocabDescription = newVocabDescriptionByLanguage[language];
   const { lessons, vocab } = useCurriculum();
   const { user, profile } = useAuth();
   const router = useRouter();
@@ -116,6 +124,13 @@ export default function Home() {
         </Card>
 
         <GameCard
+          title="New Vocab"
+          description={newVocabDescription}
+          href="/new-vocab"
+          tone="blue"
+          cta={copy.play}
+        />
+        <GameCard
           title={copy.flashcards}
           description={copy.homeFlashcardsDesc}
           href="/flashcards"
@@ -134,6 +149,13 @@ export default function Home() {
           description={copy.homeNumbersDesc}
           href="/numbers"
           tone="indigo"
+          cta={copy.play}
+        />
+        <GameCard
+          title={copy.ordinals}
+          description={copy.homeOrdinalsDesc}
+          href="/ordinals"
+          tone="purple"
           cta={copy.play}
         />
         <GameCard

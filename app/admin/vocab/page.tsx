@@ -16,6 +16,7 @@ type WordRow = {
   id: string;
   course: string;
   lesson: number;
+  sort_order: number | null;
   eng: string;
   spa: string;
   por: string;
@@ -33,6 +34,7 @@ type WordRow = {
 type WordUpsertInput = {
   course: string;
   lesson: number;
+  sort_order: number | null;
   eng: string;
   spa: string;
   por: string;
@@ -108,6 +110,25 @@ async function fetchAllRows<T extends { created_at: string }>(table: "words" | "
     all.push(...batch);
     if (batch.length < PAGE_SIZE) break;
     from += PAGE_SIZE;
+  }
+
+  if (table === "words") {
+    return all.sort((a, b) => {
+      const left = a as T & { course: string; lesson: number; sort_order?: number | null; id: string };
+      const right = b as T & { course: string; lesson: number; sort_order?: number | null; id: string };
+      const courseCompare = left.course.localeCompare(right.course);
+      if (courseCompare !== 0) return courseCompare;
+      if (left.lesson !== right.lesson) return left.lesson - right.lesson;
+
+      const leftSort = left.sort_order ?? Number.MAX_SAFE_INTEGER;
+      const rightSort = right.sort_order ?? Number.MAX_SAFE_INTEGER;
+      if (leftSort !== rightSort) return leftSort - rightSort;
+
+      const createdAtCompare = new Date(left.created_at).getTime() - new Date(right.created_at).getTime();
+      if (createdAtCompare !== 0) return createdAtCompare;
+
+      return left.id.localeCompare(right.id);
+    });
   }
 
   return all;
@@ -391,6 +412,12 @@ export default function AdminVocabPage() {
         return {
           course,
           lesson,
+          sort_order: (() => {
+            const raw = readField(row, "sortOrder", "sort_order").trim();
+            if (!raw) return null;
+            const parsed = Number.parseInt(raw, 10);
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+          })(),
           eng: normalized.eng,
           spa: normalized.spa,
           por: normalized.por,
@@ -550,13 +577,14 @@ export default function AdminVocabPage() {
 
       const supabase = createClient();
       const { error } = await supabase
-        .from("words")
-        .update({
-          course: selectedWord.course.trim(),
-          lesson: selectedWord.lesson,
-          eng: selectedWord.eng.trim(),
-          spa: selectedWord.spa.trim(),
-          por: selectedWord.por.trim(),
+          .from("words")
+          .update({
+            course: selectedWord.course.trim(),
+            lesson: selectedWord.lesson,
+            sort_order: selectedWord.sort_order,
+            eng: selectedWord.eng.trim(),
+            spa: selectedWord.spa.trim(),
+            por: selectedWord.por.trim(),
           spa_transliteration: nullIfEmpty(selectedWord.spa_transliteration),
           por_transliteration: nullIfEmpty(selectedWord.por_transliteration),
           ipa: nullIfEmpty(selectedWord.ipa),
@@ -707,6 +735,7 @@ export default function AdminVocabPage() {
               <form className="space-y-3" onSubmit={onUploadWords}>
                 <Label htmlFor="words-file" className="text-base font-bold text-white">
                   Headers: course, lesson, eng, spa, por, spaTransliteration, porTransliteration, ipa, partOfSpeech, definition, image, engAudio
+                  , sortOrder (optional)
                 </Label>
                 <Input
                   id="words-file"
@@ -764,6 +793,7 @@ export default function AdminVocabPage() {
                       <th className="px-3 py-2">Course</th>
                       <th className="px-3 py-2">Lesson</th>
                       <th className="px-3 py-2">English</th>
+                      <th className="px-3 py-2">Sort</th>
                       <th className="px-3 py-2">Spanish</th>
                       <th className="px-3 py-2">Portuguese</th>
                     </tr>
@@ -779,6 +809,7 @@ export default function AdminVocabPage() {
                         <td className="px-3 py-2">{row.course}</td>
                         <td className="px-3 py-2">{row.lesson}</td>
                         <td className="px-3 py-2">{row.eng}</td>
+                        <td className="px-3 py-2">{row.sort_order ?? "-"}</td>
                         <td className="px-3 py-2">{row.spa}</td>
                         <td className="px-3 py-2">{row.por}</td>
                       </tr>
@@ -824,6 +855,27 @@ export default function AdminVocabPage() {
                       value={selectedWord.eng}
                       onChange={(event) => setSelectedWord((prev) => (prev ? { ...prev, eng: event.target.value } : prev))}
                       required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Sort Order</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="1"
+                      value={selectedWord.sort_order ?? ""}
+                      onChange={(event) =>
+                        setSelectedWord((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                sort_order: event.target.value
+                                  ? Number.parseInt(event.target.value, 10) || null
+                                  : null,
+                              }
+                            : prev,
+                        )
+                      }
                     />
                   </div>
                   <div className="space-y-1">

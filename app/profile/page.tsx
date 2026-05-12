@@ -3,6 +3,7 @@
 import { AppShell } from "@/components/app/app-shell";
 import { useCurriculum } from "@/components/app/use-curriculum";
 import { useAuth } from "@/components/providers/auth-provider";
+import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { t } from "@/lib/i18n";
 import { createClient, supabaseConfigured } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
@@ -54,6 +56,13 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState("EC1");
+
+  function applyTemplate(template: string, values: Record<string, string | number>) {
+    return Object.entries(values).reduce(
+      (result, [key, value]) => result.replaceAll(`{${key}}`, String(value)),
+      template
+    );
+  }
 
   useEffect(() => {
     if (profile?.selected_course?.trim()) {
@@ -162,6 +171,47 @@ export default function ProfilePage() {
           <p className="text-sm text-muted-foreground">{copy.gamesOpenNotice}</p>
         </CardContent>
       </Card>
+
+      {user ? (
+        <Card
+          className={cn(
+            "border-0 shadow-xl",
+            profile?.has_ordinals_medal
+              ? "bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-500 text-slate-900 shadow-amber-500/30"
+              : "bg-gradient-to-r from-slate-100 via-white to-slate-100 text-slate-900 shadow-slate-200"
+          )}
+        >
+          <CardContent className="space-y-3 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-2xl font-black">{copy.ordinalsMedalTitle}</p>
+                <p className={cn("text-base font-semibold", profile?.has_ordinals_medal ? "text-slate-800" : "text-slate-600")}>
+                  {copy.ordinalsMedalDescription}
+                </p>
+              </div>
+              <div className="text-5xl" aria-hidden="true">
+                {profile?.has_ordinals_medal ? "🏅" : "🎯"}
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "rounded-full px-3 py-1 text-sm font-bold",
+                  profile?.has_ordinals_medal ? "bg-white text-amber-700" : "bg-slate-200 text-slate-700"
+                )}
+              >
+                {applyTemplate(copy.ordinalsMedalProgressTemplate, {
+                  count: Math.min(profile?.ordinals_perfect_streak ?? 0, 5),
+                })}
+              </Badge>
+              {profile?.has_ordinals_medal ? (
+                <p className="text-base font-black">Unlocked</p>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {!user ? (
         <Card>

@@ -11,6 +11,7 @@ type WordRow = {
   id: string;
   course: string;
   lesson: number;
+  sort_order: number | null;
   eng: string;
   spa: string;
   por: string;
@@ -21,6 +22,7 @@ type WordRow = {
   definition: string | null;
   image: string | null;
   eng_audio: string | null;
+  created_at: string;
 };
 
 type PhraseRow = {
@@ -77,7 +79,7 @@ async function fetchAllWords() {
       .select("*")
       .order("course", { ascending: true })
       .order("lesson", { ascending: true })
-      .order("eng", { ascending: true })
+      .order("created_at", { ascending: true })
       .range(from, to);
 
     if (error || !data) {
@@ -89,6 +91,22 @@ async function fetchAllWords() {
     if (batch.length < PAGE_SIZE) break;
     from += PAGE_SIZE;
   }
+
+  allRows.sort((a, b) => {
+    const courseCompare = a.course.localeCompare(b.course);
+    if (courseCompare !== 0) return courseCompare;
+
+    if (a.lesson !== b.lesson) return a.lesson - b.lesson;
+
+    const aSort = a.sort_order ?? Number.MAX_SAFE_INTEGER;
+    const bSort = b.sort_order ?? Number.MAX_SAFE_INTEGER;
+    if (aSort !== bSort) return aSort - bSort;
+
+    const createdAtCompare = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (createdAtCompare !== 0) return createdAtCompare;
+
+    return a.eng.localeCompare(b.eng);
+  });
 
   return { data: allRows, error: null };
 }
@@ -173,6 +191,7 @@ export function useCurriculum() {
             lesson_id: lessonId,
             source_row_id: null,
             item_type: "word",
+            sort_order: word.sort_order,
             english_text: word.eng,
             english_sentence: null,
             spanish_text: word.spa,
@@ -198,6 +217,7 @@ export function useCurriculum() {
             lesson_id: lessonId,
             source_row_id: null,
             item_type: "phrase",
+            sort_order: null,
             english_text: phrase.eng,
             english_sentence: null,
             spanish_text: phrase.spa,

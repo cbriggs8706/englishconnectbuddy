@@ -26,6 +26,7 @@ export type VocabularyItem = {
   lesson_id: string;
   source_row_id: number | null;
   item_type: string;
+  sort_order?: number | null;
   english_text: string;
   english_sentence: string | null;
   spanish_text: string;
@@ -88,6 +89,9 @@ export type Profile = {
   selected_course: string;
   native_language: Language | null;
   is_admin: boolean;
+  ordinals_perfect_streak: number;
+  has_ordinals_medal: boolean;
+  ordinals_medal_awarded_at: string | null;
 };
 
 export type FlashcardProgress = {

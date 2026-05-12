@@ -14,6 +14,7 @@ type Dictionary = {
   flashcards: string;
   alphabet: string;
   numbers: string;
+  ordinals: string;
   hearing: string;
   speak: string;
   matching: string;
@@ -61,6 +62,7 @@ type Dictionary = {
   homeFlashcardsDesc: string;
   homeAlphabetDesc: string;
   homeNumbersDesc: string;
+  homeOrdinalsDesc: string;
   homeHearingDesc: string;
   homeMatchingDesc: string;
   homeUnscrambleDesc: string;
@@ -193,6 +195,7 @@ type Dictionary = {
   notStartedStatus: string;
   alphabetSubtitle: string;
   numbersSubtitle: string;
+  ordinalsSubtitle: string;
   hearingSubtitle: string;
   hearingSpeedLabel: string;
   hearingPlay: string;
@@ -203,10 +206,22 @@ type Dictionary = {
   numbersStudyIntro: string;
   startLetterQuiz: string;
   startNumberQuiz: string;
+  startOrdinalsRound: string;
   letterQuizTitle: string;
   numberQuizTitle: string;
+  ordinalsRoundTitle: string;
   chooseSecondsPerLetter: string;
   chooseSecondsPerNumber: string;
+  ordinalsRoundDescription: string;
+  ordinalsRuleHint: string;
+  ordinalsQuestionPrompt: string;
+  ordinalsCorrectAnswerTemplate: string;
+  ordinalsWrongAnswerTemplate: string;
+  ordinalsScoreSummaryTemplate: string;
+  ordinalsPerfectRound: string;
+  ordinalsKeepPracticing: string;
+  ordinalsPlayAgain: string;
+  ordinalsReviewTitle: string;
   beginQuiz: string;
   studyMore: string;
   ready: string;
@@ -238,6 +253,9 @@ type Dictionary = {
   currentStreak: string;
   longestStreak: string;
   streakDays: string;
+  ordinalsMedalTitle: string;
+  ordinalsMedalDescription: string;
+  ordinalsMedalProgressTemplate: string;
 };
 
 const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
@@ -247,6 +265,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     flashcards: "Flashcards",
     alphabet: "Alphabet",
     numbers: "Numbers",
+    ordinals: "Ordinals",
     hearing: "Hearing",
     speak: "Speak",
     matching: "Matching",
@@ -294,6 +313,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     homeFlashcardsDesc: "Learn key words by revealing English meanings.",
     homeAlphabetDesc: "Study uppercase and lowercase letters with audio.",
     homeNumbersDesc: "Practice number sounds from 1 to 9000 with audio.",
+    homeOrdinalsDesc: "Choose st, nd, rd, or th for numbers 1 to 200.",
     homeHearingDesc: "Listen to words spelled letter by letter at your pace.",
     homeMatchingDesc: "Match your language to English words quickly.",
     homeUnscrambleDesc: "Build correct English sentence order.",
@@ -426,6 +446,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     notStartedStatus: "Not started",
     alphabetSubtitle: "Study letters and sounds",
     numbersSubtitle: "Study numbers and sounds",
+    ordinalsSubtitle: "Practice ordinal endings from 1 to 200",
     hearingSubtitle: "Hear words spelled out one letter at a time",
     hearingSpeedLabel: "Spelling speed",
     hearingPlay: "Play Spelling",
@@ -436,10 +457,22 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     numbersStudyIntro: "Practice number pronunciation with audio.",
     startLetterQuiz: "Start Letter Quiz",
     startNumberQuiz: "Start Number Quiz",
+    startOrdinalsRound: "Start Ordinals Round",
     letterQuizTitle: "Letter Quiz",
     numberQuizTitle: "Number Quiz",
+    ordinalsRoundTitle: "Ordinals Quiz",
     chooseSecondsPerLetter: "Choose how many seconds you want to answer each letter.",
     chooseSecondsPerNumber: "Choose how many seconds you want to answer each number.",
+    ordinalsRoundDescription: "Answer 20 random numbers each round. Numbers 11, 12, and 13 always appear.",
+    ordinalsRuleHint: "Most numbers use the last digit, but 11, 12, and 13 are always th.",
+    ordinalsQuestionPrompt: "Choose the correct ending.",
+    ordinalsCorrectAnswerTemplate: "{number}{suffix} is correct!",
+    ordinalsWrongAnswerTemplate: "Not quite. {number}{suffix} is correct.",
+    ordinalsScoreSummaryTemplate: "You got {correct} of {total} correct.",
+    ordinalsPerfectRound: "Perfect round!",
+    ordinalsKeepPracticing: "Nice work. Try another round.",
+    ordinalsPlayAgain: "Play Again",
+    ordinalsReviewTitle: "Round Review",
     beginQuiz: "Begin Quiz",
     studyMore: "Study More",
     ready: "Ready",
@@ -471,6 +504,9 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     currentStreak: "Current streak",
     longestStreak: "Longest streak",
     streakDays: "days",
+    ordinalsMedalTitle: "Ordinals Medal",
+    ordinalsMedalDescription: "Earn this by getting 5 perfect Ordinals rounds in a row.",
+    ordinalsMedalProgressTemplate: "{count} of 5 perfect rounds in a row",
   },
   es: {
     appName: "EnglishConnect Buddy",
@@ -478,6 +514,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     flashcards: "Tarjetas",
     alphabet: "Alfabeto",
     numbers: "Números",
+    ordinals: "Ordinales",
     hearing: "Escuchar",
     speak: "Hablar",
     matching: "Relacionar",
@@ -525,6 +562,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     homeFlashcardsDesc: "Aprende palabras clave revelando su significado en inglés.",
     homeAlphabetDesc: "Estudia letras mayúsculas y minúsculas con audio.",
     homeNumbersDesc: "Practica los sonidos de números del 1 al 9000 con audio.",
+    homeOrdinalsDesc: "Elige st, nd, rd o th para números del 1 al 200.",
     homeHearingDesc: "Escucha palabras deletreadas letra por letra a tu ritmo.",
     homeMatchingDesc: "Relaciona rápidamente tu idioma con palabras en inglés.",
     homeUnscrambleDesc: "Construye el orden correcto de las oraciones en inglés.",
@@ -657,6 +695,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     notStartedStatus: "Sin empezar",
     alphabetSubtitle: "Estudia letras y sonidos",
     numbersSubtitle: "Estudia números y sonidos",
+    ordinalsSubtitle: "Practica terminaciones ordinales del 1 al 200",
     hearingSubtitle: "Escucha palabras deletreadas una letra a la vez",
     hearingSpeedLabel: "Velocidad de deletreo",
     hearingPlay: "Reproducir deletreo",
@@ -667,10 +706,22 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     numbersStudyIntro: "Practica la pronunciación de números con audio.",
     startLetterQuiz: "Comenzar quiz de letras",
     startNumberQuiz: "Comenzar quiz de números",
+    startOrdinalsRound: "Comenzar ronda de ordinales",
     letterQuizTitle: "Quiz de letras",
     numberQuizTitle: "Quiz de números",
+    ordinalsRoundTitle: "Quiz de ordinales",
     chooseSecondsPerLetter: "Elige cuántos segundos quieres para responder cada letra.",
     chooseSecondsPerNumber: "Elige cuántos segundos quieres para responder cada número.",
+    ordinalsRoundDescription: "Responde 20 números al azar en cada ronda. Los números 11, 12 y 13 siempre aparecen.",
+    ordinalsRuleHint: "La mayoría usa el último dígito, pero 11, 12 y 13 siempre usan th.",
+    ordinalsQuestionPrompt: "Elige la terminación correcta.",
+    ordinalsCorrectAnswerTemplate: "{number}{suffix} es correcto.",
+    ordinalsWrongAnswerTemplate: "Todavía no. {number}{suffix} es correcto.",
+    ordinalsScoreSummaryTemplate: "Acertaste {correct} de {total}.",
+    ordinalsPerfectRound: "¡Ronda perfecta!",
+    ordinalsKeepPracticing: "Buen trabajo. Intenta otra ronda.",
+    ordinalsPlayAgain: "Jugar otra vez",
+    ordinalsReviewTitle: "Repaso de la ronda",
     beginQuiz: "Comenzar quiz",
     studyMore: "Estudiar más",
     ready: "Listos",
@@ -702,6 +753,9 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     currentStreak: "Racha actual",
     longestStreak: "Mejor racha",
     streakDays: "días",
+    ordinalsMedalTitle: "Medalla de ordinales",
+    ordinalsMedalDescription: "Gánala al conseguir 5 rondas perfectas de Ordinales seguidas.",
+    ordinalsMedalProgressTemplate: "{count} de 5 rondas perfectas seguidas",
   },
   pt: {
     appName: "EnglishConnect Buddy",
@@ -709,6 +763,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     flashcards: "Cartões",
     alphabet: "Alfabeto",
     numbers: "Números",
+    ordinals: "Ordinais",
     hearing: "Escuta",
     speak: "Falar",
     matching: "Combinar",
@@ -756,6 +811,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     homeFlashcardsDesc: "Aprenda palavras-chave revelando significados em inglês.",
     homeAlphabetDesc: "Estude letras maiúsculas e minúsculas com áudio.",
     homeNumbersDesc: "Pratique sons de números de 1 a 9000 com áudio.",
+    homeOrdinalsDesc: "Escolha st, nd, rd ou th para números de 1 a 200.",
     homeHearingDesc: "Ouça palavras soletradas letra por letra no seu ritmo.",
     homeMatchingDesc: "Combine rapidamente seu idioma com palavras em inglês.",
     homeUnscrambleDesc: "Monte a ordem correta das frases em inglês.",
@@ -888,6 +944,7 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     notStartedStatus: "Não iniciada",
     alphabetSubtitle: "Estude letras e sons",
     numbersSubtitle: "Estude números e sons",
+    ordinalsSubtitle: "Pratique terminações ordinais de 1 a 200",
     hearingSubtitle: "Ouça palavras soletradas uma letra por vez",
     hearingSpeedLabel: "Velocidade da soletração",
     hearingPlay: "Tocar soletração",
@@ -898,10 +955,22 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     numbersStudyIntro: "Pratique a pronúncia dos números com áudio.",
     startLetterQuiz: "Iniciar quiz de letras",
     startNumberQuiz: "Iniciar quiz de números",
+    startOrdinalsRound: "Iniciar rodada de ordinais",
     letterQuizTitle: "Quiz de letras",
     numberQuizTitle: "Quiz de números",
+    ordinalsRoundTitle: "Quiz de ordinais",
     chooseSecondsPerLetter: "Escolha quantos segundos você quer para responder cada letra.",
     chooseSecondsPerNumber: "Escolha quantos segundos você quer para responder cada número.",
+    ordinalsRoundDescription: "Responda 20 números aleatórios por rodada. Os números 11, 12 e 13 sempre aparecem.",
+    ordinalsRuleHint: "A maioria usa o último dígito, mas 11, 12 e 13 sempre usam th.",
+    ordinalsQuestionPrompt: "Escolha a terminação correta.",
+    ordinalsCorrectAnswerTemplate: "{number}{suffix} está correto.",
+    ordinalsWrongAnswerTemplate: "Ainda não. {number}{suffix} está correto.",
+    ordinalsScoreSummaryTemplate: "Você acertou {correct} de {total}.",
+    ordinalsPerfectRound: "Rodada perfeita!",
+    ordinalsKeepPracticing: "Bom trabalho. Tente outra rodada.",
+    ordinalsPlayAgain: "Jogar de novo",
+    ordinalsReviewTitle: "Revisão da rodada",
     beginQuiz: "Iniciar quiz",
     studyMore: "Estudar mais",
     ready: "Preparar",
@@ -933,6 +1002,9 @@ const baseDictionary: Record<"en" | "es" | "pt", Dictionary> = {
     currentStreak: "Sequência atual",
     longestStreak: "Maior sequência",
     streakDays: "dias",
+    ordinalsMedalTitle: "Medalha de ordinais",
+    ordinalsMedalDescription: "Ganhe esta medalha ao fazer 5 rodadas perfeitas de Ordinais seguidas.",
+    ordinalsMedalProgressTemplate: "{count} de 5 rodadas perfeitas seguidas",
   },
 };
 
